@@ -10,6 +10,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const email = normalizedEmail(body?.email);
     if (!email) return Response.json({ detail: "Ingresá un email válido." }, { status: 400 });
+    if (process.env.NODE_ENV === "production" && (process.env.AUTH_EMAIL_MODE ?? "sandbox") === "sandbox") {
+      return Response.json({ detail: "El acceso por email no está habilitado en producción." }, { status: 503 });
+    }
     const { user: currentUser } = await getOrCreateUser(request.headers.get("user-agent"));
     const [existingAccount] = await db.select({ id: users.id }).from(users)
       .where(and(eq(users.email, email), isNotNull(users.emailVerifiedAt))).limit(1);
