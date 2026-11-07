@@ -17,11 +17,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const initialDemoBalance = {
+  amount: 500_000,
+  formatted: new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(500_000),
+};
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="es-AR">
       <body>
-        <Providers>{children}</Providers>
+        <Providers initialDemoBalance={initialDemoBalance}>{children}</Providers>
       </body>
     </html>
   );

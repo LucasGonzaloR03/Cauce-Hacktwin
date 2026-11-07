@@ -16,17 +16,19 @@ export function Action({
   href,
   variant = "primary",
   disabled = false,
+  onClick,
 }: {
   children: ReactNode;
   href?: string;
   variant?: "primary" | "outline";
   disabled?: boolean;
+  onClick?: () => void;
 }) {
   const className = `action action--${variant}`;
   if (href && !disabled) {
     return <Link className={className} href={href}>{children}</Link>;
   }
-  return <button className={className} type="button" disabled>{children}</button>;
+  return <button className={className} type="button" disabled={disabled} onClick={onClick}>{children}</button>;
 }
 
 export function QuickAction({
@@ -63,7 +65,7 @@ export function Header({ title, back }: { title?: string; back?: string }) {
       {back ? (
         <Link className="back" href={back} aria-label="Volver">←</Link>
       ) : (
-        <Link className="wordmark" href="/">Cauce</Link>
+        <Link className="wordmark" href="/inicio">Cauce</Link>
       )}
       {title && <span className="label">{title}</span>}
       <span className="pill">Demo</span>
@@ -72,7 +74,7 @@ export function Header({ title, back }: { title?: string; back?: string }) {
 }
 
 const navigation = [
-  { label: "Home", href: "/", id: "home" },
+  { label: "Home", href: "/inicio", id: "home" },
   { label: "Transferir", href: "/transferir", id: "transferir" },
   { label: "Órdenes", href: "/ordenes", id: "ordenes" },
   { label: "Agente", href: "/agente", id: "agente" },

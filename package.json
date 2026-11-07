@@ -6,10 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@google/genai": "^3.0.0",
+    "@neondatabase/serverless": "^1.0.0",
     "@tanstack/react-query": "^5.0.0",
+    "drizzle-orm": "^0.44.0",
     "lucide-react": "^0.468.0",
     "next": "16.4.4",
     "react": "19.3.0",
@@ -20,9 +25,12 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "dotenv": "^16.4.7",
+    "drizzle-kit": "^0.31.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.4.4",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.0.0"
   },
   "packageManager": "pnpm@12.3.4"

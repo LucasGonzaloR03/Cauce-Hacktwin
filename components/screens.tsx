@@ -1,5 +1,17 @@
 import type { ComponentType, ReactNode } from "react";
 import { Action, Card, QuickAction, Row, Shell, Stamp } from "@/components/ui";
+import { MarketSection } from "@/components/market";
+import { NewOrderForm } from "@/components/new-order-form";
+import { DemoBalanceSummary, TransferFlow } from "@/components/transfer-flow";
+import { transferDestinations } from "@/lib/transfer-preview";
+
+const transferDestinationOptions = Object.values(transferDestinations).map((destination) => ({
+  code: destination.code,
+  name: destination.name,
+  currency: destination.currency,
+  currencyName: destination.currencyName,
+}));
+import { AgentRuleForm } from "@/components/agent-rule-form";
 
 function Intro({ eyebrow, title, children }: { eyebrow?: string; title: ReactNode; children?: ReactNode }) {
   return (
@@ -15,30 +27,14 @@ function Notice({ children }: { children: ReactNode }) {
   return <p className="notice">{children}</p>;
 }
 
-const marketItems = [
-  { name: "MEP", detail: "Bolsa", source: "Fuente prevista: DolarAPI" },
-  { name: "USDT", detail: "Cripto", source: "Fuente a confirmar" },
-  { name: "Dólar tarjeta", detail: "Referencia", source: "Fuente prevista: DolarAPI" },
-  { name: "BTC / ARS", detail: "Cripto", source: "Fuente a confirmar" },
-];
-
-function MarketCard({ name, detail, source }: { name: string; detail: string; source: string }) {
-  return (
-    <div className="market-row">
-      <div><strong>{name}</strong><span>{detail} · {source}</span></div>
-      <div className="market-price"><strong>No disponible</strong><span>Sin hora de actualización</span></div>
-    </div>
-  );
-}
-
 export function HomeScreen() {
   return (
     <Shell active="home" title="Tu dinero, a tu ritmo">
       <h1 className="visually-hidden">Inicio</h1>
       <div className="balance">
         <p className="label">Tu saldo · demo, sin custodia</p>
-        <p className="amount">— <small>ARS</small></p>
-        <p className="muted">Saldo no disponible. La demo no recibe ni custodia fondos.</p>
+        <DemoBalanceSummary />
+        <p className="muted">Saldo de prueba para explorar conversiones. No representa fondos disponibles.</p>
       </div>
       <section aria-label="Acciones principales" className="quick-grid">
         <QuickAction icon="＋" title="Ingresar demo" description="Sin ingreso de fondos" href="/acceso" />
@@ -49,16 +45,7 @@ export function HomeScreen() {
         <div><p className="label">Alias ilustrativo · no recibe fondos</p><strong className="mono">Sin alias asignado</strong></div>
         <Stamp>Demo</Stamp>
       </Card>
-      <section aria-labelledby="market-title">
-        <div className="section-heading">
-          <div><p className="label">Cotizaciones de referencia</p><h2 id="market-title">Mercado</h2></div>
-          <Stamp>Sin conexión</Stamp>
-        </div>
-        <Card className="market-card">
-          {marketItems.map((item) => <MarketCard key={item.name} {...item} />)}
-        </Card>
-        <p className="footnote">Las cotizaciones aparecerán cuando esté disponible la API de Cauce. No hay precios ni horas de actualización para mostrar.</p>
-      </section>
+      <MarketSection />
       <Card className="horizontal">
         <div><p className="label">Ahorro activo</p><p className="muted">Consultá tus órdenes de demo</p></div>
         <Action href="/ordenes" variant="outline">Ver órdenes</Action>
@@ -67,39 +54,43 @@ export function HomeScreen() {
   );
 }
 
-function AccessScreen() {
+export function AccessScreen() {
   return (
-    <Shell back="/" title="Acceso">
-      <h1 className="visually-hidden">Acceso a la demo</h1>
-      <div className="hero"><span className="hero-logo">Cauce</span><p>El dinero corre por donde vos decidís. Al precio que vos fijás.</p></div>
-      <Card><p className="label">Sesión de demostración</p><p className="muted">Explorá la interfaz sin instalar la app ni iniciar sesión.</p></Card>
-      <Card><Row label="Fondos" value="No se reciben" /><Row label="Operaciones" value="Solo demostración" /><Row label="Acceso" value="Sin registro" /></Card>
-      <Action href="/">Entrar a la demo</Action>
-      <p className="footnote">El acceso con magic link y la verificación de identidad todavía no están disponibles.</p>
-    </Shell>
+    <main className="login-shell">
+      <header className="login-topbar">
+        <span className="wordmark">Cauce</span>
+        <span className="pill"><span className="flag" aria-hidden="true" /> AR</span>
+      </header>
+      <div className="login-hero">
+        <span className="login-logo">Cauce</span>
+        <p>El dinero corre por donde vos decidís. Al precio que vos fijás.</p>
+      </div>
+      <Card className="login-identity">
+        <span className="login-avatar" aria-hidden="true">D</span>
+        <div className="login-user">
+          <strong>Sesión de demostración</strong>
+          <span>Acceso ilustrativo · sin autenticación</span>
+        </div>
+        <Stamp>Demo</Stamp>
+      </Card>
+      <Card className="login-details">
+        <Row label="Riel de referencia" value="MEP + Bitso" />
+        <Row label="Fondos" value="No se reciben" />
+        <Row label="Operaciones" value="Solo demo" />
+      </Card>
+      <div className="login-footer">
+        <Action href="/inicio">Entrar a la demo</Action>
+        <p className="footnote">El acceso con magic link y la verificación biométrica todavía no están conectados.</p>
+      </div>
+    </main>
   );
 }
 
 function TransferScreen() {
   return (
     <Shell active="transferir" title="Transferencia">
-      <Intro eyebrow="Transferencia · vista previa" title="¿Cuánto mandás?">Conocé cómo sería una transferencia sin mover fondos.</Intro>
-      <Card>
-        <p className="label">Destino</p>
-        <p className="destination">Argentina <span>→</span> Colombia</p>
-        <p className="muted">Ruta ilustrativa · no disponible para operar</p>
-      </Card>
-      <Card>
-        <label className="label" htmlFor="transfer-amount">Monto en dólares</label>
-        <input id="transfer-amount" className="amount-input" type="text" inputMode="decimal" placeholder="0,00" disabled />
-        <p className="footnote">No se puede cotizar hasta conectar el backend.</p>
-      </Card>
-      <section>
-        <p className="label section-label">¿Cómo querés que llegue?</p>
-        <Card><Row label="Pesos colombianos" value="Vista previa" /><Row label="Dólares en cuenta" value="No disponible" /><Row label="Dólar digital" value="No disponible" /></Card>
-      </section>
-      <Notice>Demo informativa: no hay débito, conversión ni acreditación real.</Notice>
-      <Action href="/como-llega">Conocer cómo llega</Action>
+      <Intro eyebrow="Transferencia · simulación" title="¿Cuánto mandás?">Elegí el destino, revisá el cambio y seguí el recorrido completo de la plata.</Intro>
+      <TransferFlow destinations={transferDestinationOptions} />
     </Shell>
   );
 }
@@ -151,7 +142,7 @@ function ReceiptScreen() {
       <Card><Row label="Destinatario" value="Dato de muestra" /><Row label="Monto" value="No disponible" /><Row label="Estado" value="Sin operación" /><Row label="Fecha" value="No disponible" /></Card>
       <Notice>La demo no transfiere fondos ni acredita dinero.</Notice>
       <Action href="/comprobante-vista">Ver vista previa</Action>
-      <Action href="/" variant="outline">Volver al inicio</Action>
+      <Action href="/inicio" variant="outline">Volver al inicio</Action>
     </Shell>
   );
 }
@@ -178,17 +169,10 @@ function ReceiptPreviewScreen() {
 function NewOrderScreen() {
   return (
     <Shell active="ordenes" back="/ordenes" title="Nueva orden">
-      <Intro eyebrow="Orden condicional · vista previa" title={<>¿A qué precio<br />querés comprar?</>}>Definí tu objetivo cuando el servicio esté disponible.</Intro>
-      <Card>
-        <label className="label" htmlFor="target-price">Precio objetivo · ARS por USDT</label>
-        <input className="amount-input" id="target-price" type="text" inputMode="decimal" placeholder="0,00" disabled />
-      </Card>
-      <div className="two-columns">
-        <Card><p className="label">Cantidad</p><p className="empty-title">— USDT</p></Card>
-        <Card><p className="label">Vencimiento</p><p className="empty-title">No disponible</p></Card>
-      </div>
-      <Notice>Sin cotización, límites ni consentimiento no se puede crear una orden. No se realiza ninguna compra.</Notice>
-      <Action disabled>Armar orden · no disponible</Action>
+      <Intro eyebrow="Orden condicional · vista previa" title={<>¿Cuánto querés<br />poner en pesos?</>}>Calculá el equivalente aproximado en USDT y elegí cuándo vence la orden.</Intro>
+      <NewOrderForm />
+      <Notice>Es una estimación con precio de referencia. La orden no se guarda ni ejecuta hasta conectar el servicio de operaciones.</Notice>
+      <Action disabled>Crear orden · no disponible</Action>
       <Action href="/la-orden" variant="outline">Ver seguimiento de muestra</Action>
     </Shell>
   );
@@ -224,17 +208,16 @@ function OrdersScreen() {
 function AgentScreen() {
   return (
     <Shell active="agente" title="Copiloto">
-      <Intro eyebrow="Solo lectura · sandbox" title={<>¿Qué está mirando<br />el agente ahora?</>}>Una vista de cómo se explicaría el estado de tus órdenes.</Intro>
-      <Card><p className="label">Orden</p><p className="empty-title">Sin órdenes para mostrar</p><p className="muted">No hay seguimiento activo.</p></Card>
-      <Card><p className="label">Qué evalúa el motor</p><p className="muted">Las condiciones se mostrarán al conectar el servicio de órdenes.</p></Card>
-      <Card><p className="label">Próximo paso</p><p className="muted">Revisá las vistas de ejemplo mientras tanto.</p></Card>
+      <Intro eyebrow="Reglas bajo tu control · sandbox" title={<>Decidí qué querés<br />que haga tu agente</>}>Describí una regla y revisá cómo la interpreta antes de cualquier acción.</Intro>
+      <AgentRuleForm />
+      <Card><p className="label">Cómo funciona</p><p className="muted">Gemini interpreta tu instrucción. Cauce valida y explica una propuesta; el motor financiero y una confirmación explícita son necesarios antes de ejecutar movimientos.</p></Card>
       <Action href="/ordenes" variant="outline">Ir a órdenes</Action>
-      <p className="footnote">El agente y las consultas todavía no están disponibles.</p>
     </Shell>
   );
 }
 
 export const screens: Record<string, ComponentType> = {
+  inicio: HomeScreen,
   acceso: AccessScreen,
   transferir: TransferScreen,
   "como-llega": ArrivalScreen,
