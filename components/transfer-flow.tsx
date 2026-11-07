@@ -26,9 +26,10 @@ type TransferPreview = {
   exchangeRateFormatted: string;
   source: string;
   observedAt: string;
-  quality: "live" | "cached" | "frozen";
+  quality: "live" | "cached" | "frozen" | "not_applicable";
   routeNote: string;
   canSimulate: boolean;
+  isDomestic: boolean;
 };
 
 type ApiError = { detail: string };
@@ -37,6 +38,7 @@ type Simulation = DemoTransferSnapshot;
 function qualityLabel(quality: TransferPreview["quality"]) {
   if (quality === "cached") return "En caché";
   if (quality === "frozen") return "Dato antiguo";
+  if (quality === "not_applicable") return "Sin cotización FX";
   return "En vivo";
 }
 
@@ -176,7 +178,11 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
             }}
           />
         </div>
-        <p className="footnote">La comisión demo del 1% se descuenta antes de convertir.</p>
+        <p className="footnote">
+          {selectedDestination?.code === "AR"
+            ? "La comisión demo del 1% se descuenta del monto en pesos."
+            : "La comisión demo del 1% se descuenta antes de convertir."}
+        </p>
       </Card>
 
       <Card className="transfer-receipt" aria-live="polite">
@@ -193,11 +199,11 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
         ) : preview ? (
           <>
             <p className="transfer-received">{preview.receivedAmountFormatted}</p>
-            <p className="muted">{preview.exchangeRateFormatted} · {preview.source} · {preview.observedAt}</p>
+            <p className="muted">{preview.isDomestic ? `Simulación local · ${preview.observedAt}` : `${preview.exchangeRateFormatted} · ${preview.source} · ${preview.observedAt}`}</p>
             <div className="transfer-breakdown">
               <Row label="Enviás" value={preview.amountArsFormatted} />
               <Row label={`Comisión (${preview.feeRatePercent}%)`} value={preview.feeArsFormatted} />
-              <Row label="Se convierte" value={preview.usdtAmountFormatted} />
+              {!preview.isDomestic && <Row label="Se convierte" value={preview.usdtAmountFormatted} />}
             </div>
             <p className="footnote">{preview.routeNote}</p>
             {!preview.canSimulate && <p className="transfer-error">El monto supera el saldo demo disponible.</p>}
@@ -228,7 +234,11 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
           <p className="label section-label">Recorrido de la plata</p>
           <div className="timeline transfer-route">
             <div><strong>Pesos argentinos</strong><p>Saldo demo de origen</p></div>
-            <div><strong>USDT</strong><p>Conversión de referencia con Bitso</p></div>
+            {selectedDestination?.code === "AR" ? (
+              <div><strong>Transferencia local</strong><p>Sin conversión de moneda</p></div>
+            ) : (
+              <div><strong>USDT</strong><p>Conversión de referencia con Bitso</p></div>
+            )}
             <div><strong>{selectedDestination?.currencyName ?? "Moneda local"}</strong><p>Conversión al tipo de cambio disponible</p></div>
             <div><strong>Destino demo</strong><p>Sin acreditación ni payout real</p></div>
           </div>

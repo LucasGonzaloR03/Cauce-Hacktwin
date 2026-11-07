@@ -111,6 +111,99 @@ function magicLinkHtml(url: string, logoSrc: string) {
 </html>`;
 }
 
+function orderAlertHtml(details: {
+  amount: string;
+  targetRate: string;
+  observedRate: string;
+  ordersUrl: string;
+  logoSrc: string;
+}) {
+  const amount = escapeHtml(details.amount);
+  const targetRate = escapeHtml(details.targetRate);
+  const observedRate = escapeHtml(details.observedRate);
+  const ordersUrl = escapeHtml(details.ordersUrl);
+  const logoSrc = escapeHtml(details.logoSrc);
+  return `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light"></head>
+<body style="margin:0;padding:0;background:#f1f0ed;font-family:Arial,Helvetica,sans-serif;color:#171717;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f1f0ed;padding:32px 12px;"><tr><td align="center">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#fff;border:1px solid #dedbd5;">
+      <tr><td style="padding:26px 30px;border-bottom:1px solid #e7e4df;"><table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+        <td valign="middle"><img src="${logoSrc}" width="44" height="44" alt="Símbolo de Cauce" style="display:block;width:44px;height:44px;border:0;border-radius:8px;"></td>
+        <td valign="middle" style="padding-left:12px;font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#171717;">Cauce</td>
+      </tr></table></td></tr>
+      <tr><td style="padding:32px 30px 28px;">
+        <p style="margin:0 0 10px;font-size:11px;font-weight:bold;letter-spacing:1.5px;color:#8a4b37;">ALERTA DE PRECIO</p>
+        <h1 style="margin:0 0 14px;font-family:Georgia,'Times New Roman',serif;font-size:29px;font-weight:normal;line-height:1.15;">Se cumplió tu objetivo</h1>
+        <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#55524e;">Dos cotizaciones nuevas confirmaron el precio de USDT que definiste.</p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f8f7f5;border:1px solid #e7e4df;margin-bottom:22px;">
+          <tr><td style="padding:12px 14px;font-size:13px;color:#55524e;">Tu objetivo</td><td align="right" style="padding:12px 14px;font-size:13px;font-weight:bold;color:#171717;">${targetRate} ARS / USDT</td></tr>
+          <tr><td style="padding:12px 14px;border-top:1px solid #e7e4df;font-size:13px;color:#55524e;">Precio observado</td><td align="right" style="padding:12px 14px;border-top:1px solid #e7e4df;font-size:13px;font-weight:bold;color:#171717;">${observedRate} ARS / USDT</td></tr>
+          <tr><td style="padding:12px 14px;border-top:1px solid #e7e4df;font-size:13px;color:#55524e;">Monto reservado · demo</td><td align="right" style="padding:12px 14px;border-top:1px solid #e7e4df;font-size:13px;font-weight:bold;color:#171717;">${amount}</td></tr>
+        </table>
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td bgcolor="#171717" style="border-radius:4px;"><a href="${ordersUrl}" style="display:inline-block;padding:14px 20px;border:1px solid #171717;border-radius:4px;color:#fff;text-decoration:none;font-size:14px;font-weight:bold;">Revisar mis órdenes</a></td></tr></table>
+        <p style="margin:22px 0 0;padding:12px 14px;border-left:3px solid #8a4b37;background:#f8f7f5;font-size:12px;line-height:1.55;color:#55524e;">Este aviso no ejecutó una compra. El saldo, las cotizaciones y las órdenes son de demostración; no se movieron fondos reales.</p>
+      </td></tr>
+      <tr><td style="padding:16px 30px;border-top:1px solid #e7e4df;background:#faf9f7;font-size:11px;line-height:1.5;color:#77736d;">Cauce · Tu dinero, a tu ritmo. Mensaje automático.</td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+}
+
+export async function sendOrderPriceAlert(
+  email: string,
+  details: { amount: string; targetRate: string; observedRate: string; ordersUrl: string },
+) {
+  const mode = process.env.AUTH_EMAIL_MODE ?? "sandbox";
+  if (mode === "sandbox") return "sandbox" as const;
+
+  const text = [
+    "Se cumplió tu objetivo de precio en Cauce.",
+    `Objetivo: ${details.targetRate} ARS / USDT.`,
+    `Precio observado: ${details.observedRate} ARS / USDT.`,
+    `Monto reservado · demo: ${details.amount}.`,
+    "Este aviso no ejecutó una compra ni movió fondos reales.",
+    `Revisá tus órdenes: ${details.ordersUrl}`,
+  ].join("\n\n");
+
+  if (mode === "gmail") {
+    const user = process.env.GMAIL_USER;
+    const appPassword = process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, "");
+    if (!user || !appPassword) throw new Error("Faltan GMAIL_USER o GMAIL_APP_PASSWORD.");
+    const logo = await readFile(join(process.cwd(), "public", "email", "cauce-symbol.png"));
+    const transporter = nodemailer.createTransport({ service: "gmail", auth: { user, pass: appPassword } });
+    await transporter.sendMail({
+      from: { name: "Cauce", address: user },
+      to: email,
+      subject: "Se cumplió tu objetivo de precio · Cauce",
+      text,
+      html: orderAlertHtml({ ...details, logoSrc: "cid:cauce-symbol" }),
+      attachments: [{ filename: "cauce-symbol.png", content: logo, contentType: "image/png", cid: "cauce-symbol", contentDisposition: "inline" }],
+    });
+    return "sent" as const;
+  }
+
+  if (mode !== "resend") throw new Error("AUTH_EMAIL_MODE debe ser sandbox, gmail o resend.");
+  const key = process.env.RESEND_API_KEY;
+  const from = process.env.AUTH_EMAIL_FROM;
+  if (!key || !from) throw new Error("Faltan RESEND_API_KEY o AUTH_EMAIL_FROM para enviar correo.");
+  const logoUrl = new URL("/email/cauce-symbol.png", details.ordersUrl).toString();
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from,
+      to: [email],
+      subject: "Se cumplió tu objetivo de precio · Cauce",
+      text,
+      html: orderAlertHtml({ ...details, logoSrc: logoUrl }),
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("El proveedor de correo rechazó el aviso de precio.");
+  return "sent" as const;
+}
+
 export async function sendMagicLink(email: string, url: string) {
   const mode = process.env.AUTH_EMAIL_MODE ?? "sandbox";
   if (mode === "sandbox") return "sandbox" as const;

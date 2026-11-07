@@ -13,6 +13,10 @@ export async function POST(request: Request) {
     return Response.json(options, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("[cauce] no se pudo iniciar autenticación passkey", error);
-    return Response.json({ detail: "No se pudo iniciar el acceso con passkey." }, { status: 400 });
+    return Response.json({
+      detail: process.env.NODE_ENV === "development" && error instanceof Error
+        ? error.message
+        : "No se pudo iniciar el acceso con passkey.",
+    }, { status: 400 });
   }
 }

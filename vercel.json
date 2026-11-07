@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "schedules": {
+    "cauce-order-alerts": {
+      "schedule": "*/15 * * * *",
+      "timezone": "America/Argentina/Buenos_Aires",
+      "path": "/api/cron/orders",
+      "requestMethod": "GET"
+    }
+  }
+}

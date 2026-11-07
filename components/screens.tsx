@@ -170,7 +170,7 @@ function ReceiptPreviewScreen() {
 function NewOrderScreen() {
   return (
     <Shell active="ordenes" back="/ordenes" title="Nueva orden">
-      <Intro eyebrow="Orden condicional · vista previa" title={<>¿Cuánto querés<br />poner en pesos?</>}>Calculá el equivalente aproximado en USDT y elegí cuándo vence la orden.</Intro>
+      <Intro eyebrow="Regla de precio · demo" title={<>¿Cuánto querés<br />poner en pesos?</>}>Calculá el equivalente en USDT y elegí si querés un aviso o una compra simulada automática.</Intro>
       <NewOrderForm />
     </Shell>
   );

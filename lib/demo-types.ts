@@ -17,9 +17,10 @@ export type DemoTransferRecord = {
   exchangeRateFormatted: string;
   source: string;
   observedAt: string;
-  quality: "live" | "cached" | "frozen";
+  quality: "live" | "cached" | "frozen" | "not_applicable";
   routeNote: string;
   canSimulate: boolean;
+  isDomestic: boolean;
   journey: { title: string; detail: string }[];
 };
 
@@ -45,6 +46,10 @@ export type DemoOrderRecord = {
   expirationCode: string;
   expiration: string;
   status: string;
+  executionMode: "ALERT" | "AUTO_SIMULATE";
+  filledRate: number | null;
+  filledRateFormatted: string | null;
+  executedAt: string | null;
   isMock: boolean;
   source: string;
   quality: "live" | "cached" | "frozen";
