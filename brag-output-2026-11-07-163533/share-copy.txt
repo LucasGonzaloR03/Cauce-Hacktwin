@@ -1,0 +1,3 @@
+Cauce reúne transferencias con costos visibles, órdenes con precio objetivo y reglas de agente que primero se explican. Esta versión es una demo: explora sin mover dinero real.
+
+Música: Sascha Ende, ende.app (CC BY 4.0).

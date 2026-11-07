@@ -8,3 +8,6 @@ coverage/
 *.tsbuildinfo
 next-env.d.ts
 pnpm-debug.log*
+
+# Hyperframes project sources and local render artifacts (keep brag deliverables)
+brag-output-*/composition/
