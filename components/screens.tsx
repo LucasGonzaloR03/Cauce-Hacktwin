@@ -2,6 +2,8 @@ import type { ComponentType, ReactNode } from "react";
 import { Action, Card, QuickAction, Row, Shell, Stamp } from "@/components/ui";
 import { MarketSection } from "@/components/market";
 import { NewOrderForm } from "@/components/new-order-form";
+import { OrdersList } from "@/components/orders";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { DemoBalanceSummary, TransferFlow } from "@/components/transfer-flow";
 import { transferDestinations } from "@/lib/transfer-preview";
 
@@ -12,6 +14,8 @@ const transferDestinationOptions = Object.values(transferDestinations).map((dest
   currencyName: destination.currencyName,
 }));
 import { AgentRuleForm } from "@/components/agent-rule-form";
+import { AuthPanel } from "@/components/auth-panel";
+import { AuthSessionBadge } from "@/components/auth-session-badge";
 
 function Intro({ eyebrow, title, children }: { eyebrow?: string; title: ReactNode; children?: ReactNode }) {
   return (
@@ -31,6 +35,7 @@ export function HomeScreen() {
   return (
     <Shell active="home" title="Tu dinero, a tu ritmo">
       <h1 className="visually-hidden">Inicio</h1>
+      <AuthSessionBadge />
       <div className="balance">
         <p className="label">Tu saldo · demo, sin custodia</p>
         <DemoBalanceSummary />
@@ -59,20 +64,16 @@ export function AccessScreen() {
     <main className="login-shell">
       <header className="login-topbar">
         <span className="wordmark">Cauce</span>
-        <span className="pill"><span className="flag" aria-hidden="true" /> AR</span>
+        <div className="login-topbar-actions">
+          <ThemeToggle />
+          <span className="pill"><span className="flag" aria-hidden="true" /> AR</span>
+        </div>
       </header>
       <div className="login-hero">
         <span className="login-logo">Cauce</span>
         <p>El dinero corre por donde vos decidís. Al precio que vos fijás.</p>
       </div>
-      <Card className="login-identity">
-        <span className="login-avatar" aria-hidden="true">D</span>
-        <div className="login-user">
-          <strong>Sesión de demostración</strong>
-          <span>Acceso ilustrativo · sin autenticación</span>
-        </div>
-        <Stamp>Demo</Stamp>
-      </Card>
+      <AuthPanel />
       <Card className="login-details">
         <Row label="Riel de referencia" value="MEP + Bitso" />
         <Row label="Fondos" value="No se reciben" />
@@ -80,7 +81,7 @@ export function AccessScreen() {
       </Card>
       <div className="login-footer">
         <Action href="/inicio">Entrar a la demo</Action>
-        <p className="footnote">El acceso con magic link y la verificación biométrica todavía no están conectados.</p>
+        <p className="footnote">Vinculá tu email para conservar tus datos en otros dispositivos.</p>
       </div>
     </main>
   );
@@ -171,9 +172,6 @@ function NewOrderScreen() {
     <Shell active="ordenes" back="/ordenes" title="Nueva orden">
       <Intro eyebrow="Orden condicional · vista previa" title={<>¿Cuánto querés<br />poner en pesos?</>}>Calculá el equivalente aproximado en USDT y elegí cuándo vence la orden.</Intro>
       <NewOrderForm />
-      <Notice>Es una estimación con precio de referencia. La orden no se guarda ni ejecuta hasta conectar el servicio de operaciones.</Notice>
-      <Action disabled>Crear orden · no disponible</Action>
-      <Action href="/la-orden" variant="outline">Ver seguimiento de muestra</Action>
     </Shell>
   );
 }
@@ -181,15 +179,9 @@ function NewOrderScreen() {
 function OrderScreen() {
   return (
     <Shell active="ordenes" back="/ordenes" title="La orden">
-      <Intro eyebrow="Seguimiento · muestra" title="Esperando el precio">Esta pantalla es una vista previa; no hay una orden activa.</Intro>
-      <Card><p className="label">Cotización actual USDT</p><p className="amount">— <small>ARS</small></p><p className="footnote">Sin fuente ni hora de actualización.</p></Card>
-      <div className="timeline">
-        <div><strong>Orden armada</strong><p>No disponible en esta demo.</p></div>
-        <div><strong>Esperando el precio</strong><p>El seguimiento requiere el backend.</p></div>
-        <div><strong>Resultado simulado</strong><p>Sin compra ni acreditación.</p></div>
-      </div>
-      <Action disabled variant="outline">Pausar orden · no disponible</Action>
-      <Action disabled variant="outline">Cancelar orden · no disponible</Action>
+      <Intro eyebrow="Órdenes demo" title="Tus órdenes">Las muestras y las órdenes que armes quedan asociadas a tu sesión.</Intro>
+      <OrdersList />
+      <Action href="/nueva-orden">Armar orden</Action>
     </Shell>
   );
 }
@@ -198,9 +190,8 @@ function OrdersScreen() {
   return (
     <Shell active="ordenes" title="Órdenes">
       <Intro eyebrow="Tu actividad" title="Tus recibos">Consultá tus órdenes y comprobantes en un solo lugar.</Intro>
-      <Card className="empty-state"><p className="empty-title">Todavía no hay órdenes</p><p className="muted">El historial estará disponible cuando se conecte el backend.</p></Card>
+      <OrdersList />
       <Action href="/nueva-orden">Explorar nueva orden</Action>
-      <Action href="/la-orden" variant="outline">Ver seguimiento de muestra</Action>
     </Shell>
   );
 }

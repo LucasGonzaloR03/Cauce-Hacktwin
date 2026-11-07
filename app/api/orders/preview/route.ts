@@ -85,6 +85,7 @@ export async function POST(request: Request) {
       {
         amountArs: arsFormatter.format(amount),
         estimatedUsdt: `${usdtFormatter.format(estimatedUsdt)} USDT`,
+        rateValue: rate,
         rate: `${arsFormatter.format(rate)} por USDT`,
         source: sourceName(tick.source),
         observedAt: timeFormatter.format(new Date(tick.observedAt)),

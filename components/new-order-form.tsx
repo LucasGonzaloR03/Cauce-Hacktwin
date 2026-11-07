@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { Card, Row } from "@/components/ui";
 
 type Preview = {
@@ -12,6 +14,7 @@ type Preview = {
   observedAt: string;
   quality: "live" | "cached" | "frozen";
   expiration: string;
+  rateValue: number;
 };
 
 const expirationOptions = [
@@ -40,8 +43,13 @@ async function fetchPreview(amountArs: string, expiration: string): Promise<Prev
 }
 
 export function NewOrderForm() {
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const [amountArs, setAmountArs] = useState("");
   const [expiration, setExpiration] = useState("24h");
+  const [targetRate, setTargetRate] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const [debouncedAmount, setDebouncedAmount] = useState("");
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -54,6 +62,39 @@ export function NewOrderForm() {
   });
 
   const waitingForAmount = amountArs.trim() !== debouncedAmount.trim();
+  const normalizedTargetRate = targetRate.trim().includes(",")
+    ? targetRate.trim().replace(/\./g, "").replace(",", ".")
+    : /^\d{1,3}(\.\d{3})+$/.test(targetRate.trim())
+      ? targetRate.trim().replace(/\./g, "")
+      : targetRate.trim();
+  const targetRateValue = Number(normalizedTargetRate);
+  const canCreate = Boolean(
+    amountArs.trim() && data && !waitingForAmount && Number.isFinite(targetRateValue) &&
+    targetRateValue > 0 && targetRateValue < data.rateValue,
+  );
+
+  async function createOrder() {
+    if (!canCreate) return;
+    setIsCreating(true);
+    setCreateError("");
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ amountArs, targetRate, expiration }),
+        cache: "no-store",
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.detail ?? "No se pudo crear la orden.");
+      await queryClient.invalidateQueries({ queryKey: ["demo-state"] });
+      await queryClient.invalidateQueries({ queryKey: ["demo-orders"] });
+      router.push("/ordenes");
+    } catch (failure) {
+      setCreateError((failure as Error).message);
+    } finally {
+      setIsCreating(false);
+    }
+  }
 
   return (
     <>
@@ -98,6 +139,32 @@ export function NewOrderForm() {
       </Card>
 
       <Card>
+        <label className="label" htmlFor="order-target-rate">Precio objetivo · ARS por USDT</label>
+        <input
+          id="order-target-rate"
+          className="order-target-input"
+          type="text"
+          inputMode="decimal"
+          placeholder={data ? String(Math.floor(data.rateValue * 0.99)) : "Ej. 1.600.000"}
+          value={targetRate}
+          onChange={(event) => setTargetRate(event.target.value)}
+          aria-describedby="order-target-help"
+        />
+        <p id="order-target-help" className="footnote">
+          El objetivo debe ser menor que la cotización actual ({data?.rate ?? "calculando…"}).
+        </p>
+        {data && (
+          <button
+            className="order-target-suggestion"
+            type="button"
+            onClick={() => setTargetRate(String(Math.floor(data.rateValue * 0.99)))}
+          >
+            Usar objetivo 1% debajo del actual
+          </button>
+        )}
+      </Card>
+
+      <Card>
         <label className="label" htmlFor="order-expiration">Vencimiento de la orden</label>
         <select
           id="order-expiration"
@@ -116,6 +183,12 @@ export function NewOrderForm() {
           </div>
         )}
       </Card>
+
+      {createError && <p className="transfer-error" role="alert">{createError}</p>}
+      <button className="action action--primary" type="button" disabled={!canCreate || isCreating} onClick={createOrder}>
+        {isCreating ? "Guardando orden…" : "Armar orden demo"}
+      </button>
+      <p className="footnote">El saldo se reserva en la demo. La orden no envía ni compra activos automáticamente.</p>
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useDemoBalance } from "@/app/providers";
+import { useDemoBalance, type DemoTransferSnapshot } from "@/app/providers";
 import { Action, Card, Row, Stamp } from "@/components/ui";
 
 type DestinationCode = string;
@@ -31,15 +31,8 @@ type TransferPreview = {
   canSimulate: boolean;
 };
 
-type Simulation = TransferPreview & {
-  simulationId: string;
-  simulatedAt: string;
-  balanceAfterArs: number;
-  balanceAfterFormatted: string;
-  journey: { title: string; detail: string }[];
-};
-
 type ApiError = { detail: string };
+type Simulation = DemoTransferSnapshot;
 
 function qualityLabel(quality: TransferPreview["quality"]) {
   if (quality === "cached") return "En caché";
@@ -60,12 +53,16 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 }
 
 export function DemoBalanceSummary() {
-  const { balance } = useDemoBalance();
-  return <p className="amount">{balance.formatted} <small>ARS</small></p>;
+  const { balance, balanceError } = useDemoBalance();
+  return (
+    <p className="amount" aria-live="polite">
+      {balance ? <>{balance.formatted} <small>ARS</small></> : balanceError ?? "Consultando saldo demo…"}
+    </p>
+  );
 }
 
 export function TransferFlow({ destinations }: { destinations: DestinationOption[] }) {
-  const { balance, setBalance } = useDemoBalance();
+  const { balance, balanceError, simulations, setBalance, refreshDemoState } = useDemoBalance();
   const [amountArs, setAmountArs] = useState("");
   const [destination, setDestination] = useState<DestinationCode>("CO");
   const [debouncedAmount, setDebouncedAmount] = useState("");
@@ -77,11 +74,10 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
   const selectedDestination = destinations.find((option) => option.code === destination);
 
   const { data: preview, error, isError, isFetching } = useQuery({
-    queryKey: ["transfer-preview", debouncedAmount, destination, balance.amount],
+    queryKey: ["transfer-preview", debouncedAmount, destination, balance?.amount],
     queryFn: () => postJson<TransferPreview>("/api/transfers/preview", {
       amountArs: debouncedAmount,
       destination,
-      demoBalanceArs: balance.amount,
     }),
     enabled: Boolean(debouncedAmount.trim() && selectedDestination),
     refetchInterval: 30_000,
@@ -96,12 +92,12 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
     setIsSimulating(true);
     setSimulationError("");
     try {
-      const result = await postJson<Simulation>("/api/transfers/simulate", {
+      const result = await postJson<DemoTransferSnapshot>("/api/transfers/simulate", {
         amountArs,
         destination,
-        demoBalanceArs: balance.amount,
       });
       setBalance({ amount: result.balanceAfterArs, formatted: result.balanceAfterFormatted });
+      void refreshDemoState();
       setSimulation(result);
     } catch (simulationFailure) {
       setSimulationError((simulationFailure as Error).message);
@@ -115,7 +111,7 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
       <Card className="demo-wallet">
         <div>
           <p className="label">Saldo para probar</p>
-          <strong>{balance.formatted} ARS</strong>
+          <strong>{balance?.formatted ?? (balanceError ? "Saldo no disponible" : "Consultando…")}</strong>
           <p className="footnote">Saldo de prueba para explorar el recorrido.</p>
         </div>
         <Stamp>Demo</Stamp>
@@ -206,7 +202,9 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
             <p className="footnote">{preview.routeNote}</p>
             {!preview.canSimulate && <p className="transfer-error">El monto supera el saldo demo disponible.</p>}
           </>
-        ) : null}
+        ) : balanceError ? (
+          <p className="muted">{balanceError}</p>
+        ) : <p className="muted">Consultando cotización…</p>}
       </Card>
 
       {simulationError && <p className="transfer-error" role="alert">{simulationError}</p>}
@@ -235,6 +233,19 @@ export function TransferFlow({ destinations }: { destinations: DestinationOption
             <div><strong>Destino demo</strong><p>Sin acreditación ni payout real</p></div>
           </div>
         </>
+      )}
+
+      {simulations.length > 0 && (
+        <Card>
+          <p className="label">Simulaciones guardadas</p>
+          {simulations.map((item) => (
+            <Row
+              key={item.simulationId}
+              label={`${item.destination.name} · ${item.simulatedAt}`}
+              value={item.receivedAmountFormatted}
+            />
+          ))}
+        </Card>
       )}
 
       <Action disabled={!canSimulate || isSimulating || Boolean(simulation)} onClick={simulateTransfer}>
