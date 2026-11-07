@@ -108,10 +108,10 @@ export async function getOrCreateUser(userAgent?: string | null): Promise<Sessio
 /** Reemplaza la sesión actual por una nueva del usuario indicado. */
 export async function rotateSessionFor(userId: string, userAgent?: string | null) {
   const current = await readSession();
-  if (current) {
+  const { session, token } = await createSession(userId, userAgent);
+  await setSessionCookie(token);
+  if (current && current.sessionId !== session.id) {
     await db.delete(sessions).where(eq(sessions.id, current.sessionId));
   }
-  const { token } = await createSession(userId, userAgent);
-  await setSessionCookie(token);
   return token;
 }

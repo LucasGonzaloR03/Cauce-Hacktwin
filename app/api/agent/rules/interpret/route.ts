@@ -69,9 +69,13 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   } catch (error) {
-    console.error("[cauce] no se pudo interpretar la regla", error instanceof Error ? error.name : "UnknownError");
+    console.error("[cauce] no se pudo interpretar la regla", error);
     return Response.json(
-      { detail: "No se pudo interpretar la regla. Revisala o volvé a intentar." },
+      {
+        detail: process.env.NODE_ENV === "development" && error instanceof Error
+          ? error.message
+          : "No se pudo interpretar la regla. Revisala o volvé a intentar.",
+      },
       { status: 502, headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   }

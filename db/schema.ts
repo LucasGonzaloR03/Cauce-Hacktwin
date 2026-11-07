@@ -15,6 +15,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import type { DemoTransferRecord } from "../lib/demo-types";
 
 /** Qué quiere hacer el usuario: mandar plata o acumular un activo. */
 export const intentEnum = pgEnum("intent", ["SEND", "ACCUMULATE"]);
@@ -61,11 +62,11 @@ export const users = pgTable("users", {
   email: text("email"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   anonTokenHash: text("anon_token_hash"),
-  demoBalanceMinor: bigint("demo_balance_minor", { mode: "number" }).notNull().default(100_000),
+  demoBalanceMinor: bigint("demo_balance_minor", { mode: "number" }).notNull().default(50_000_000),
   kycStatus: text("kyc_status").notNull().default("demo"),
   flags: jsonb("flags").notNull().default({}),
   lastIntent: intentEnum("last_intent").notNull().default("SEND"),
-});
+}, (t) => [uniqueIndex("users_email_lower_unique_idx").on(sql`lower(${t.email})`).where(sql`${t.email} IS NOT NULL`)]);
 
 export const sessions = pgTable(
   "sessions",
@@ -100,6 +101,29 @@ export const authTokens = pgTable(
   },
   (t) => [uniqueIndex("auth_tokens_hash_idx").on(t.tokenHash), index("auth_tokens_email_idx").on(t.email)],
 );
+
+export const authChallenges = pgTable("auth_challenges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  challenge: text("challenge").notNull().unique(),
+  purpose: text("purpose").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+}, (t) => [index("auth_challenges_expiry_idx").on(t.expiresAt)]);
+
+export const passkeyCredentials = pgTable("passkey_credentials", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  credentialId: text("credential_id").notNull().unique(),
+  publicKey: text("public_key").notNull(),
+  counter: bigint("counter", { mode: "number" }).notNull().default(0),
+  transports: jsonb("transports").$type<string[]>().notNull().default([]),
+  deviceType: text("device_type").notNull(),
+  backedUp: boolean("backed_up").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+}, (t) => [index("passkey_credentials_user_idx").on(t.userId)]);
 
 // --- configuración de corredores ------------------------------------------
 
@@ -277,6 +301,51 @@ export const transfers = pgTable(
   ],
 );
 
+/** Historial de la demo. No representa transferencias reales ni usa los rieles de payout. */
+export const demoTransfers = pgTable(
+  "demo_transfers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    amountArsMinor: bigint("amount_ars_minor", { mode: "number" }).notNull(),
+    balanceAfterMinor: bigint("balance_after_minor", { mode: "number" }).notNull(),
+    destinationCode: text("destination_code").notNull(),
+    result: jsonb("result").$type<DemoTransferRecord>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("demo_transfers_user_created_idx").on(t.userId, t.createdAt),
+    check("demo_transfers_amount_positive_check", sql`${t.amountArsMinor} > 0`),
+  ],
+);
+
+export const demoOrders = pgTable(
+  "demo_orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    amountArsMinor: bigint("amount_ars_minor", { mode: "number" }).notNull(),
+    targetRate: numeric("target_rate", { precision: 30, scale: 10 }).notNull(),
+    referenceRate: numeric("reference_rate", { precision: 30, scale: 10 }).notNull(),
+    estimatedUsdt: numeric("estimated_usdt", { precision: 30, scale: 10 }).notNull(),
+    expirationCode: text("expiration_code").notNull(),
+    status: orderStatusEnum("status").notNull().default("ARMED"),
+    isMock: boolean("is_mock").notNull().default(false),
+    source: text("source").notNull(),
+    quality: dataQualityEnum("quality").notNull(),
+    observedAt: timestamp("observed_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("demo_orders_user_created_idx").on(t.userId, t.createdAt),
+    index("demo_orders_user_status_idx").on(t.userId, t.status),
+    check("demo_orders_amount_positive_check", sql`${t.amountArsMinor} > 0`),
+    check("demo_orders_rates_positive_check", sql`${t.targetRate} > 0 AND ${t.referenceRate} > 0`),
+    check("demo_orders_estimate_positive_check", sql`${t.estimatedUsdt} > 0`),
+  ],
+);
+
 /** Auditoría append-only de transiciones del envío. */
 export const transferEvents = pgTable(
   "transfer_events",
@@ -406,6 +475,8 @@ export const settings = pgTable("settings", {
 
 /** Tipos inferidos para servicios y contratos de persistencia. */
 export type Transfer = typeof transfers.$inferSelect;
+export type DemoTransfer = typeof demoTransfers.$inferSelect;
+export type DemoOrder = typeof demoOrders.$inferSelect;
 export type TransferEvent = typeof transferEvents.$inferSelect;
 export type TransferStatus = (typeof transferStatusEnum.enumValues)[number];
 

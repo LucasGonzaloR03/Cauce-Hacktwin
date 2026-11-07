@@ -1,6 +1,6 @@
 # Propuesta visual: Cauce en blanco y negro
 
-- **Estado:** propuesta para debatir. No implementada.
+- **Estado:** implementada como tema claro/oscuro global.
 - **Alcance:** tema visual de la app; no cambia flujos, contratos, datos ni reglas financieras.
 
 ## Dirección

@@ -1,4 +1,5 @@
 import { buildTransferPreview, isTransferDestination, parseArsAmount, transferDestinations } from "@/lib/transfer-preview";
+import { getOrCreateUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -23,15 +24,16 @@ export async function POST(request: Request) {
   }
 
   const amountArs = parseArsAmount(body.amountArs);
-  const demoBalanceArs = parseArsAmount(body.demoBalanceArs, true);
   if (amountArs === null) {
     return Response.json({ detail: "Ingresá un monto en pesos mayor que cero." }, { status: 400 });
   }
-  if (demoBalanceArs === null || !isTransferDestination(body.destination)) {
+  if (!isTransferDestination(body.destination)) {
     return Response.json({ detail: "Elegí un destino válido para la simulación." }, { status: 400 });
   }
 
   try {
+    const { user } = await getOrCreateUser(request.headers.get("user-agent"));
+    const demoBalanceArs = user.demoBalanceMinor / 100;
     const preview = await buildTransferPreview(amountArs, body.destination);
     return Response.json({
       ...preview,

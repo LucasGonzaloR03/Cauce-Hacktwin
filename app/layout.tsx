@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { Providers } from "@/app/providers";
+import type { Theme } from "@/app/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,22 +13,23 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Cauce", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#f3ede3",
-  width: "device-width",
-  initialScale: 1,
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = (await cookies()).get("cauce_theme")?.value;
+  return {
+    themeColor: theme === "dark" ? "#111111" : "#ffffff",
+    width: "device-width",
+    initialScale: 1,
+  };
+}
 
-const initialDemoBalance = {
-  amount: 500_000,
-  formatted: new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(500_000),
-};
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const savedTheme = (await cookies()).get("cauce_theme")?.value;
+  const theme: Theme = savedTheme === "dark" ? "dark" : "light";
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="es-AR">
+    <html lang="es-AR" data-theme={theme}>
       <body>
-        <Providers initialDemoBalance={initialDemoBalance}>{children}</Providers>
+        <Providers initialTheme={theme}>{children}</Providers>
       </body>
     </html>
   );

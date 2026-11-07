@@ -15,6 +15,27 @@
       "when": 1794055235442,
       "tag": "0001_brave_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794055300000,
+      "tag": "0002_demo_transfer_persistence",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794055400000,
+      "tag": "0003_demo_orders",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794055500000,
+      "tag": "0004_user_authentication",
+      "breakpoints": true
     }
   ]
 }
