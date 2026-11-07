@@ -47,6 +47,8 @@ export function NewOrderForm() {
   const router = useRouter();
   const [amountArs, setAmountArs] = useState("");
   const [expiration, setExpiration] = useState("24h");
+  const [executionMode, setExecutionMode] = useState<"ALERT" | "AUTO_SIMULATE">("ALERT");
+  const [autoConsent, setAutoConsent] = useState(false);
   const [targetRate, setTargetRate] = useState("");
   const [createError, setCreateError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -70,7 +72,8 @@ export function NewOrderForm() {
   const targetRateValue = Number(normalizedTargetRate);
   const canCreate = Boolean(
     amountArs.trim() && data && !waitingForAmount && Number.isFinite(targetRateValue) &&
-    targetRateValue > 0 && targetRateValue < data.rateValue,
+    targetRateValue > 0 && targetRateValue < data.rateValue &&
+    (executionMode === "ALERT" || (autoConsent && data.quality === "live")),
   );
 
   async function createOrder() {
@@ -81,7 +84,7 @@ export function NewOrderForm() {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ amountArs, targetRate, expiration }),
+        body: JSON.stringify({ amountArs, targetRate, expiration, executionMode, autoConsent }),
         cache: "no-store",
       });
       const result = await response.json();
@@ -112,6 +115,7 @@ export function NewOrderForm() {
             onChange={(event) => {
               const nextAmount = event.target.value;
               setAmountArs(nextAmount);
+              setAutoConsent(false);
               if (debounceTimer.current) clearTimeout(debounceTimer.current);
               debounceTimer.current = setTimeout(() => setDebouncedAmount(nextAmount), 300);
             }}
@@ -139,6 +143,44 @@ export function NewOrderForm() {
       </Card>
 
       <Card>
+        <fieldset className="order-mode-fieldset">
+          <legend className="label">¿Qué querés que haga Cauce?</legend>
+          <label className={`order-mode-option${executionMode === "ALERT" ? " is-selected" : ""}`}>
+            <input
+              type="radio"
+              name="execution-mode"
+              value="ALERT"
+              checked={executionMode === "ALERT"}
+              onChange={() => { setExecutionMode("ALERT"); setAutoConsent(false); }}
+            />
+            <span><strong>Avisarme</strong><small>Te avisa en la app y por email si vinculaste una cuenta verificada.</small></span>
+          </label>
+          <label className={`order-mode-option${executionMode === "AUTO_SIMULATE" ? " is-selected" : ""}`}>
+            <input
+              type="radio"
+              name="execution-mode"
+              value="AUTO_SIMULATE"
+              checked={executionMode === "AUTO_SIMULATE"}
+              onChange={() => { setExecutionMode("AUTO_SIMULATE"); setAutoConsent(false); }}
+            />
+            <span><strong>Comprar automáticamente</strong><small>Cauce simula la compra cuando el precio se confirma dos veces.</small></span>
+          </label>
+          {executionMode === "AUTO_SIMULATE" ? (
+            <div className="order-auto-consent">
+              <label>
+                <input type="checkbox" checked={autoConsent} onChange={(event) => setAutoConsent(event.target.checked)} />
+                <span>Autorizo a Cauce a simular automáticamente la compra de hasta {amountArs || "—"} ARS en USDT si el precio llega a {targetRate || "mi objetivo"} ARS/USDT antes del vencimiento.</span>
+              </label>
+              <p className="footnote">Solo mueve el saldo ficticio de la demo. No se envía una orden a un exchange ni se compran activos reales. Requiere dos cotizaciones nuevas en vivo.</p>
+              {data && data.quality !== "live" && <p className="transfer-error" role="status">La cotización actual no está en vivo. La compra automática queda deshabilitada hasta tener un dato actual.</p>}
+            </div>
+          ) : (
+            <p className="footnote">La detección requiere mantener Órdenes abierta. El correo se envía al email verificado si el proveedor está configurado; no hay notificaciones push.</p>
+          )}
+        </fieldset>
+      </Card>
+
+      <Card>
         <label className="label" htmlFor="order-target-rate">Precio objetivo · ARS por USDT</label>
         <input
           id="order-target-rate"
@@ -147,7 +189,7 @@ export function NewOrderForm() {
           inputMode="decimal"
           placeholder={data ? String(Math.floor(data.rateValue * 0.99)) : "Ej. 1.600.000"}
           value={targetRate}
-          onChange={(event) => setTargetRate(event.target.value)}
+          onChange={(event) => { setTargetRate(event.target.value); setAutoConsent(false); }}
           aria-describedby="order-target-help"
         />
         <p id="order-target-help" className="footnote">
@@ -157,7 +199,7 @@ export function NewOrderForm() {
           <button
             className="order-target-suggestion"
             type="button"
-            onClick={() => setTargetRate(String(Math.floor(data.rateValue * 0.99)))}
+            onClick={() => { setTargetRate(String(Math.floor(data.rateValue * 0.99))); setAutoConsent(false); }}
           >
             Usar objetivo 1% debajo del actual
           </button>
@@ -170,7 +212,7 @@ export function NewOrderForm() {
           id="order-expiration"
           className="order-expiration-select"
           value={expiration}
-          onChange={(event) => setExpiration(event.target.value)}
+          onChange={(event) => { setExpiration(event.target.value); setAutoConsent(false); }}
         >
           {expirationOptions.map((option) => (
             <option key={option.value} value={option.value}>{option.label}</option>
@@ -186,9 +228,9 @@ export function NewOrderForm() {
 
       {createError && <p className="transfer-error" role="alert">{createError}</p>}
       <button className="action action--primary" type="button" disabled={!canCreate || isCreating} onClick={createOrder}>
-        {isCreating ? "Guardando orden…" : "Armar orden demo"}
+        {isCreating ? "Guardando orden…" : executionMode === "AUTO_SIMULATE" ? "Autorizar compra demo" : "Crear alerta de precio"}
       </button>
-      <p className="footnote">El saldo se reserva en la demo. La orden no envía ni compra activos automáticamente.</p>
+      <p className="footnote">El monto se reserva en el saldo demo mientras la orden está activa. No hay compras reales.</p>
     </>
   );
 }

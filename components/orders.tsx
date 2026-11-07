@@ -20,7 +20,13 @@ async function deleteOrder(id: string) {
 
 export function OrdersList() {
   const queryClient = useQueryClient();
-  const orders = useQuery({ queryKey: ["demo-orders"], queryFn: fetchOrders, retry: false });
+  const orders = useQuery({
+    queryKey: ["demo-orders"],
+    queryFn: fetchOrders,
+    retry: false,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
   const deletion = useMutation({
     mutationFn: deleteOrder,
     onSuccess: async () => {
@@ -43,16 +49,24 @@ export function OrdersList() {
         <Card className="order-list-item" key={order.id}>
           <div className="order-list-header">
             <div>
-              <p className="label">{order.isMock ? "Orden de muestra" : "Orden demo"}</p>
+              <p className="label">
+                {order.isMock ? "Orden de muestra" : order.executionMode === "AUTO_SIMULATE" ? "Compra automática · demo" : "Aviso de precio · demo"}
+              </p>
               <p className="order-list-target">{order.targetRateFormatted}<small> ARS / USDT</small></p>
             </div>
-            <Stamp>{order.isMock ? "Muestra" : order.status === "ARMED" ? "Armada" : order.status}</Stamp>
+            <Stamp>{order.isMock ? "Muestra" : order.status === "ARMED" ? "Esperando precio" : order.status === "TRIGGERED" ? "Objetivo alcanzado" : order.status === "SETTLED" ? "Compra simulada" : order.status}</Stamp>
           </div>
-          <Row label="Monto reservado" value={order.amountArsFormatted} />
-          <Row label="Recibirías al objetivo" value={order.estimatedUsdt} />
+          <Row label={order.isMock ? "Monto de muestra" : order.status === "SETTLED" ? "Monto usado · demo" : "Monto reservado"} value={order.amountArsFormatted} />
+          <Row label={order.status === "SETTLED" ? "Compraste · simulación" : "Recibirías al objetivo"} value={order.estimatedUsdt} />
+          {order.status === "SETTLED" && order.filledRateFormatted && (
+            <Row label="Precio simulado" value={order.filledRateFormatted} />
+          )}
+          {order.status === "TRIGGERED" && (
+            <p className="notice" role="status">Se cumplieron dos cotizaciones nuevas. El aviso está listo para revisar; no se hizo ninguna compra.</p>
+          )}
           <Row label="Vencimiento" value={order.expiresAt ?? order.expiration} />
-          <p className="footnote">{order.createdAt} · {order.source} · {order.quality === "frozen" ? "Dato antiguo" : order.quality === "cached" ? "En caché" : "En vivo"}</p>
-          <button
+          <p className="footnote">{order.executedAt ? `Compra simulada · ${order.executedAt}` : order.createdAt} · {order.source} · {order.quality === "frozen" ? "Dato antiguo" : order.quality === "cached" ? "En caché" : "En vivo"}</p>
+          {order.status !== "SETTLED" && <button
             className="order-delete-button"
             type="button"
             aria-label={`Eliminar orden con objetivo ${order.targetRateFormatted}`}
@@ -62,7 +76,7 @@ export function OrdersList() {
           >
             <Trash2 size={16} aria-hidden="true" />
             <span>{deletion.isPending && deletion.variables === order.id ? "Eliminando…" : "Eliminar orden"}</span>
-          </button>
+          </button>}
           {deletion.isError && deletion.variables === order.id && (
             <p className="transfer-error" role="alert">{(deletion.error as Error).message}</p>
           )}

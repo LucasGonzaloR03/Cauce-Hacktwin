@@ -46,12 +46,18 @@ export async function POST(request: Request) {
       canSimulate: true,
       simulationId,
       simulatedAt,
-      journey: [
-        { title: "Saldo demo en ARS", detail: `${preview.amountArsFormatted} debitados del saldo de prueba.` },
-        { title: "Conversión a USDT", detail: `${preview.usdtAmountFormatted} · Bitso.` },
-        { title: `Conversión a ${preview.destination.currency}`, detail: `${preview.receivedAmountFormatted} · ${preview.source}.` },
-        { title: `Destino demo en ${preview.destination.name}`, detail: "Simulado; no se hizo ningún payout real." },
-      ],
+      journey: preview.isDomestic
+        ? [
+            { title: "Saldo demo en ARS", detail: `${preview.amountArsFormatted} debitados del saldo de prueba.` },
+            { title: "Transferencia local", detail: `${preview.receivedAmountFormatted} después de la comisión demo.` },
+            { title: "Destino demo en Argentina", detail: "Simulado; no se hizo ningún envío real." },
+          ]
+        : [
+            { title: "Saldo demo en ARS", detail: `${preview.amountArsFormatted} debitados del saldo de prueba.` },
+            { title: "Conversión a USDT", detail: `${preview.usdtAmountFormatted} · Bitso.` },
+            { title: `Conversión a ${preview.destination.currency}`, detail: `${preview.receivedAmountFormatted} · ${preview.source}.` },
+            { title: `Destino demo en ${preview.destination.name}`, detail: "Simulado; no se hizo ningún payout real." },
+          ],
     };
     const writeResult = await db.execute(sql`
       WITH updated_user AS (

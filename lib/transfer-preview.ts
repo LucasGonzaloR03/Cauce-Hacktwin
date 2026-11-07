@@ -2,6 +2,15 @@ import "server-only";
 import { getTick, type RateTick } from "@/lib/fx";
 
 export const transferDestinations = {
+  AR: {
+    code: "AR",
+    name: "Argentina",
+    currency: "ARS",
+    currencyName: "pesos argentinos",
+    pair: "ARS/ARS",
+    countryLocale: "es-AR",
+    routeNote: "Transferencia local simulada en pesos; no requiere conversión a otra moneda.",
+  },
   CO: {
     code: "CO",
     name: "Colombia",
@@ -99,6 +108,40 @@ function combinedQuality(ticks: RateTick[]): RateTick["quality"] {
 
 export async function buildTransferPreview(amountArs: number, destinationCode: TransferDestinationCode) {
   const destination = transferDestinations[destinationCode];
+  if (destinationCode === "AR") {
+    const feeArs = amountArs * FEE_RATE;
+    const receivedAmount = amountArs - feeArs;
+    const localFormatter = new Intl.NumberFormat(destination.countryLocale, {
+      style: "currency",
+      currency: destination.currency,
+    });
+
+    return {
+      amountArs,
+      amountArsFormatted: arsFormatter.format(amountArs),
+      feeArs,
+      feeArsFormatted: arsFormatter.format(feeArs),
+      feeRatePercent: FEE_RATE * 100,
+      usdtAmount: 0,
+      usdtAmountFormatted: "No aplica",
+      receivedAmount,
+      receivedAmountFormatted: localFormatter.format(receivedAmount),
+      destination: {
+        code: destination.code,
+        name: destination.name,
+        currency: destination.currency,
+        currencyName: destination.currencyName,
+      },
+      route: "ARS → ARS",
+      exchangeRateFormatted: "Sin conversión de moneda",
+      source: "Cauce · simulación local",
+      observedAt: timeFormatter.format(new Date()),
+      quality: "not_applicable" as const,
+      routeNote: destination.routeNote,
+      isDomestic: true,
+    };
+  }
+
   const [arsUsdt, destinationRate] = await Promise.all([
     getTick("USDT/ARS"),
     getTick(destination.pair),
@@ -140,6 +183,7 @@ export async function buildTransferPreview(amountArs: number, destinationCode: T
       currencyName: destination.currencyName,
     },
     route: `ARS → USDT → ${destination.currency}`,
+    isDomestic: false,
     exchangeRateFormatted: `1 USDT ≈ ${localRateFormatter.format(payoutRate)} ${destination.currency}`,
     source: `${sourceName(arsUsdt.source)} · ${sourceName(destinationRate.source)}`,
     observedAt: timeFormatter.format(new Date(

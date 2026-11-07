@@ -34,10 +34,10 @@ Las pantallas están en `components/screens.tsx`, se cargan por `app/[screen]` y
 
 - Inicio muestra saldo demo, accesos rápidos y mercado.
 - Transferir permite elegir destino, revisar conversión/comisión y guardar una simulación demo.
-- Nueva orden permite preparar una intención de compra de USDT con precio objetivo y vencimiento.
-- Órdenes lista órdenes demo, incluidas dos muestras iniciales por sesión; se puede crear y borrar órdenes demo.
+- Nueva orden permite crear una alerta de precio o autorizar una compra simulada de USDT con precio objetivo y vencimiento.
+- Órdenes lista órdenes demo, incluidas dos muestras iniciales por sesión; las órdenes activas se evalúan cada 30 s mientras la pantalla está abierta y requieren dos cotizaciones nuevas en vivo. Las alertas quedan en la app y se envían por email cuando el usuario verificó su dirección y el proveedor está configurado; no hay notificaciones push ni evaluación en segundo plano. La compra automática solo simula y descuenta saldo demo.
 - Agente convierte una instrucción en una propuesta estructurada; la pantalla indica que requiere confirmación.
-- El acceso funciona con magic link (Gmail, Resend o sandbox), passkeys y cierre de sesión. Transferencias y órdenes siguen siendo demo; payout, descargas y ejecución automática no están conectados.
+- El acceso funciona con magic link (Gmail, Resend o sandbox), passkeys y cierre de sesión. Transferencias y órdenes siguen siendo demo; no hay payout, descargas ni compras reales.
 
 ## Route Handlers actuales
 

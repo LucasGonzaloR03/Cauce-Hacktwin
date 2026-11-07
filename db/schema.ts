@@ -330,6 +330,13 @@ export const demoOrders = pgTable(
     estimatedUsdt: numeric("estimated_usdt", { precision: 30, scale: 10 }).notNull(),
     expirationCode: text("expiration_code").notNull(),
     status: orderStatusEnum("status").notNull().default("ARMED"),
+    executionMode: text("execution_mode").$type<"ALERT" | "AUTO_SIMULATE">().notNull().default("ALERT"),
+    autoConsentAt: timestamp("auto_consent_at", { withTimezone: true }),
+    confirmCount: integer("confirm_count").notNull().default(0),
+    lastObservedAt: timestamp("last_observed_at", { withTimezone: true }),
+    triggeredRate: numeric("triggered_rate", { precision: 30, scale: 10 }),
+    filledRate: numeric("filled_rate", { precision: 30, scale: 10 }),
+    executedAt: timestamp("executed_at", { withTimezone: true }),
     isMock: boolean("is_mock").notNull().default(false),
     source: text("source").notNull(),
     quality: dataQualityEnum("quality").notNull(),
@@ -343,6 +350,9 @@ export const demoOrders = pgTable(
     check("demo_orders_amount_positive_check", sql`${t.amountArsMinor} > 0`),
     check("demo_orders_rates_positive_check", sql`${t.targetRate} > 0 AND ${t.referenceRate} > 0`),
     check("demo_orders_estimate_positive_check", sql`${t.estimatedUsdt} > 0`),
+    check("demo_orders_execution_mode_check", sql`${t.executionMode} IN ('ALERT', 'AUTO_SIMULATE')`),
+    check("demo_orders_auto_consent_check", sql`${t.executionMode} <> 'AUTO_SIMULATE' OR ${t.autoConsentAt} IS NOT NULL`),
+    check("demo_orders_confirm_count_check", sql`${t.confirmCount} >= 0`),
   ],
 );
 

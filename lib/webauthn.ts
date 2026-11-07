@@ -1,11 +1,27 @@
 import "server-only";
 
 export function webAuthnConfig(request: Request) {
-  if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_APP_URL) {
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (process.env.NODE_ENV === "production" && !configuredUrl) {
     throw new Error("Definí NEXT_PUBLIC_APP_URL antes de habilitar passkeys en producción.");
   }
-  const origin = new URL(process.env.NEXT_PUBLIC_APP_URL || request.url).origin;
-  const rpID = process.env.WEBAUTHN_RP_ID || new URL(origin).hostname;
+
+  let baseUrl: URL;
+  try {
+    baseUrl = new URL(configuredUrl || request.url);
+  } catch {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("NEXT_PUBLIC_APP_URL debe ser una URL absoluta con http:// o https://.");
+    }
+    baseUrl = new URL(request.url);
+  }
+
+  if (baseUrl.protocol !== "http:" && baseUrl.protocol !== "https:") {
+    throw new Error("NEXT_PUBLIC_APP_URL debe usar http:// o https://.");
+  }
+
+  const origin = baseUrl.origin;
+  const rpID = process.env.WEBAUTHN_RP_ID?.trim() || baseUrl.hostname;
   return { origin, rpID, rpName: "Cauce" };
 }
 

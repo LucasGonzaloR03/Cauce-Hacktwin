@@ -19,12 +19,14 @@ export async function DELETE(
       WITH deleted_order AS (
         DELETE FROM demo_orders
         WHERE id = ${id}::uuid AND user_id = ${user.id}::uuid
-        RETURNING id, amount_ars_minor, is_mock
+        RETURNING id, amount_ars_minor, is_mock, status
       ), refunded_balance AS (
         UPDATE users
         SET demo_balance_minor = demo_balance_minor + deleted_order.amount_ars_minor
         FROM deleted_order
-        WHERE users.id = ${user.id}::uuid AND deleted_order.is_mock = false
+        WHERE users.id = ${user.id}::uuid
+          AND deleted_order.is_mock = false
+          AND deleted_order.status <> 'SETTLED'
         RETURNING users.id
       )
       SELECT id FROM deleted_order

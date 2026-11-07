@@ -160,6 +160,16 @@ a.wordmark { display: inline-flex; min-height: 44px; align-items: center; }
 .order-estimate { border-color: var(--ink); }
 .order-estimate-value { margin-top: 8px; font-family: "IBM Plex Mono", monospace; font-size: 28px; font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .order-estimate-value small { color: var(--ink-soft); font-size: 16px; font-weight: 400; }
+.order-mode-fieldset { display: grid; gap: 10px; padding: 0; border: 0; }
+.order-mode-fieldset > legend { margin-bottom: 2px; }
+.order-mode-option { display: flex; min-height: 58px; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; }
+.order-mode-option.is-selected { border-color: var(--ink); background: var(--selected-surface); }
+.order-mode-option input, .order-auto-consent input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--stamp); }
+.order-mode-option > span, .order-auto-consent label > span { display: grid; gap: 4px; font-size: 13px; line-height: 1.45; }
+.order-mode-option small { color: var(--ink-soft); font-size: 12px; }
+.order-auto-consent { padding: 12px; border-left: 3px solid var(--stamp); background: var(--notice-surface); }
+.order-auto-consent label { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.order-auto-consent .footnote { margin-top: 8px; }
 .order-target-input { width: 100%; min-height: 48px; margin-top: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: "IBM Plex Mono", monospace; font-size: 16px; }
 .order-target-suggestion { min-height: 44px; margin-top: 4px; padding: 6px 0; border: 0; background: transparent; color: var(--settled); font-size: 12px; font-weight: 600; text-align: left; cursor: pointer; }
 .order-list { display: flex; flex-direction: column; gap: 12px; }
