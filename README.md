@@ -33,7 +33,13 @@ Configurar en `.env.local` para desarrollo y en Vercel para el deployment:
 | `NEXT_PUBLIC_APP_URL` | URL HTTPS pública de la PWA. |
 | `NEXT_PUBLIC_API_BASE_URL` | URL HTTPS pública de la API del backend. Debe coincidir con el origen permitido en `FRONTEND_ORIGIN` del backend. |
 
-Estas variables forman parte del contrato de integración; el starter UI todavía no realiza llamadas a la API. No agregar secretos al frontend ni exponerlos con prefijo `NEXT_PUBLIC_`.
+Estas variables forman parte del contrato de integración. El backend todavía no está disponible y la interfaz no realiza llamadas a proveedores ni a una API de precios. No agregar secretos al frontend ni exponerlos con prefijo `NEXT_PUBLIC_`.
+
+## Demo y cotizaciones
+
+La aplicación presenta las doce vistas del mockup como una demo navegable. Las transferencias, órdenes, descargas y consultas al agente aún no están implementadas: los controles correspondientes permanecen deshabilitados y las vistas de comprobante y seguimiento son solo ejemplos.
+
+El mercado muestra MEP, dólar tarjeta, USDT y BTC/ARS sin precio mientras no haya un backend. La integración pendiente debe consumir la API de Cauce mediante `NEXT_PUBLIC_API_BASE_URL`, no consultar DolarAPI desde el navegador. El backend deberá definir el contrato de precios, consultar las fuentes apropiadas (DolarAPI para las referencias disponibles y otra fuente para los activos que no cubra), formatear importes y fechas y devolver fuente, hora y calidad de cada dato. No se debe mostrar un precio sin esos metadatos ni presentar datos en caché como vigentes.
 
 ## Reglas de interfaz
 

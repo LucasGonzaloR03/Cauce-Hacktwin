@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Tu dinero, a tu ritmo.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f5f7f4",
-    theme_color: "#f5f7f4",
+    background_color: "#f3ede3",
+    theme_color: "#f3ede3",
     lang: "es-AR",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };

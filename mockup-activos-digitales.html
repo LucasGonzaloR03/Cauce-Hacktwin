@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cauce · 12 pantallas (Fintech + activos digitales)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F3EDE3;
+    --surface:#FBF8F2;
+    --ink:#15140F;
+    --ink-soft:#5C574B;
+    --line:#DAD2C3;
+    --stamp:#C4472C;
+    --stamp-soft:#F2DCD4;
+    --settled:#1E6B4E;
+    --pending:#A8730F;
+    --on-stamp:#FFF8F1;
+    --board:#E7E0D4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--board);color:var(--ink);font-family:"Sora",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{padding:64px 40px 96px}
+  .board{max-width:1800px;margin:0 auto}
+  .board-head{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;border-bottom:1px solid #CFC6B6;padding-bottom:24px;margin-bottom:56px}
+  .board-head h1{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:44px;letter-spacing:-.01em;line-height:1.05}
+  .board-head p{font-size:13px;color:var(--ink-soft);max-width:640px;line-height:1.5}
+  .board-meta{text-align:right;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);line-height:1.8;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,390px);gap:64px 48px;justify-content:center}
+  .screen{display:flex;flex-direction:column;gap:14px}
+  .screen-label{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+  .screen-label b{color:var(--ink);font-weight:600}
+  .phone{
+    width:390px;height:844px;background:var(--paper);
+    border:1px solid #C9C0AF;border-radius:28px;overflow:hidden;position:relative;
+    box-shadow:0 2px 0 rgba(21,20,15,.12);
+    display:flex;flex-direction:column;
+  }
+  .phone::after{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+  }
+  .status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink)}
+  .status .right{display:flex;gap:6px;align-items:center}
+  .bar{width:17px;height:9px;border:1px solid var(--ink);border-radius:2px;position:relative}
+  .bar::after{content:"";position:absolute;inset:1px;right:5px;background:var(--ink)}
+  .body{flex:1;display:flex;flex-direction:column;padding:8px 20px 0;gap:16px;overflow:hidden}
+  .topbar{display:flex;justify-content:space-between;align-items:center}
+  .label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--ink-soft)}
+  .serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:-.01em;line-height:1.06}
+  .mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  h2.serif{font-size:32px}
+  .muted{color:var(--ink-soft);font-size:13px;line-height:1.5}
+  .tiny{font-size:11px;color:var(--ink-soft);line-height:1.4}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:500}
+  .flag{width:14px;height:14px;border-radius:2px;background:linear-gradient(180deg,#7FB2D9 33%,#F4F1E8 33% 66%,#7FB2D9 66%);border:1px solid #b9c6cf}
+  .divider{border:0;border-top:1px dashed var(--line);margin:0}
+  .receipt{background:var(--surface);border:1px solid var(--line);border-radius:4px;box-shadow:0 2px 0 rgba(21,20,15,.10);padding:16px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;font-size:13px}
+  .row .k{color:var(--ink-soft)}
+  .row .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+  .row.total{padding-top:12px}
+  .row.total .k{color:var(--ink);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  .row.total .v{font-size:28px;font-weight:500;line-height:1}
+  .stamp{display:inline-flex;align-items:center;border:1.5px solid currentColor;border-radius:3px;padding:3px 8px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-3deg);white-space:nowrap}
+  .stamp.stamp--pending{color:var(--pending)}
+  .stamp.stamp--settled{color:var(--settled)}
+  .stamp.stamp--cancel{color:var(--ink-soft)}
+  .stamp.stamp--accent{color:var(--stamp)}
+  .btn{display:flex;align-items:center;justify-content:center;height:48px;border-radius:4px;background:var(--stamp);color:var(--on-stamp);font-size:13.5px;font-weight:600;letter-spacing:.02em;box-shadow:0 2px 0 rgba(21,20,15,.18);text-decoration:none}
+  .btn--ghost{background:transparent;color:var(--ink);border:1px solid var(--ink);box-shadow:none}
+  .push{margin-top:auto;margin-bottom:18px}
+  .nav{margin-top:auto;border-top:1px solid var(--line);display:flex;background:var(--paper);position:relative;z-index:2}
+  .nav a{flex:1;text-align:center;padding:14px 0 20px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);text-decoration:none;font-weight:600}
+  .nav a.active{color:var(--ink);border-top:2px solid var(--stamp);margin-top:-1px}
+  .amount{font-family:"IBM Plex Mono",monospace;font-size:42px;font-weight:500;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+  .amount small{font-size:18px;color:var(--ink-soft);letter-spacing:0;font-weight:400}
+  .avatar{width:36px;height:36px;border-radius:999px;background:var(--stamp-soft);color:var(--stamp);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+  .who{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0}
+  .who .name{font-size:13.5px;font-weight:600}
+  .who .acct{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .link{font-size:12px;font-weight:600;color:var(--stamp);text-decoration:none;letter-spacing:.02em}
+  .costbar{display:flex;height:10px;border-radius:2px;overflow:hidden;border:1px solid var(--line)}
+  .costbar i{display:block;height:100%}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--ink-soft);margin-top:8px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .compare{display:flex;flex-direction:column}
+  .compare .item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .compare .item:last-child{border-bottom:0}
+  .compare .who2{display:flex;align-items:center;gap:10px}
+  .compare .pct{font-family:"IBM Plex Mono",monospace;font-size:14px}
+  .best{border:1px solid var(--ink);background:var(--surface);border-radius:4px;padding:0 12px;margin:0 -12px;box-shadow:0 2px 0 rgba(21,20,15,.08)}
+  .segment{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface)}
+  .segment div{flex:1;text-align:center;padding:10px 6px;font-size:12px;font-weight:600;color:var(--ink-soft)}
+  .segment div.on{background:var(--ink);color:var(--paper)}
+  .field{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:12px 14px}
+  .field .label{font-size:9.5px;letter-spacing:.14em}
+  .field .val{font-family:"IBM Plex Mono",monospace;font-size:16px;margin-top:4px}
+  .fields2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .consent{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:12px 14px}
+  .box{width:16px;height:16px;border:1.5px solid var(--ink);border-radius:2px;flex:none;margin-top:1px;position:relative}
+  .box.on{background:var(--ink)}
+  .box.on::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;border-right:2px solid var(--paper);border-bottom:2px solid var(--paper);transform:rotate(40deg)}
+  .ticker{display:flex;align-items:baseline;gap:10px}
+  .ticker .num{font-family:"IBM Plex Mono",monospace;font-size:44px;font-weight:500;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+  .ticker .delta{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--settled)}
+  .track{display:flex;flex-direction:column;gap:0;margin-top:4px}
+  .step{display:flex;gap:14px;position:relative;padding-bottom:20px}
+  .step:last-child{padding-bottom:0}
+  .step::before{content:"";position:absolute;left:5px;top:14px;bottom:0;width:2px;background:var(--line)}
+  .step:last-child::before{display:none}
+  .node{width:12px;height:12px;border-radius:999px;border:2px solid var(--line);background:var(--paper);flex:none;margin-top:2px;position:relative;z-index:1}
+  .step.done .node{background:var(--settled);border-color:var(--settled)}
+  .step.now .node{background:var(--pending);border-color:var(--pending);box-shadow:0 0 0 4px rgba(168,115,15,.12)}
+  .step .t{font-size:13px;font-weight:600}
+  .step .d{font-size:11px;color:var(--ink-soft);margin-top:2px;font-family:"IBM Plex Mono",monospace}
+  .progress{height:6px;background:#E4DCCD;border-radius:999px;overflow:hidden;margin-top:8px}
+  .progress i{display:block;height:100%;width:52%;background:var(--pending)}
+  .savings{border:1px solid var(--settled);border-radius:4px;background:rgba(30,107,78,.06);padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+  .savings .n{font-family:"IBM Plex Mono",monospace;font-size:20px;color:var(--settled);font-weight:600}
+  details.audit{border-top:1px solid var(--line);padding-top:12px}
+  details.audit summary{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);cursor:pointer;font-weight:600}
+  details.audit .log{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.8}
+  .chips{display:flex;gap:8px}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:11px;color:var(--ink-soft);background:var(--surface)}
+  .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .hist{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 2px 0 rgba(21,20,15,.08)}
+  .hist .top{display:flex;justify-content:space-between;align-items:center}
+  .hist .rate{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600}
+  .hist .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);font-family:"IBM Plex Mono",monospace}
+  .sheet{position:absolute;inset:0;background:rgba(21,20,15,.35);display:flex;align-items:flex-end;border-radius:28px;overflow:hidden}
+  .sheet .panel{background:var(--paper);width:100%;border-radius:16px 16px 0 0;padding:10px 20px 24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -2px 0 rgba(21,20,15,.10)}
+  .handle{width:44px;height:4px;border-radius:999px;background:#C9C0AF;margin:6px auto 4px}
+  .block{border-left:2px solid var(--line);padding-left:14px}
+  .block .t{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:4px}
+  .block .v{font-size:13.5px;line-height:1.45}
+  .block .v .mono{font-size:14px}
+  .footnote{font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:10px;line-height:1.5}
+  .wordmark{display:flex;align-items:baseline;gap:8px}
+  .wordmark .w{font-family:"Instrument Serif",Georgia,serif;font-size:22px;letter-spacing:-.01em}
+  .wordmark .t{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+
+  /* NUEVOS ESTILOS PARA HOME, AUTH Y CONSOLA DE AGENTE */
+  .intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .intent-card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 12px;display:flex;flex-direction:column;justify-content:space-between;min-height:115px;box-shadow:0 2px 0 rgba(21,20,15,.08);text-decoration:none;color:inherit}
+  .intent-card:hover{border-color:var(--ink)}
+  .intent-card .ico{font-size:20px;line-height:1}
+  .intent-card .t{font-size:13px;font-weight:600;margin-top:8px}
+  .intent-card .desc{font-size:10.5px;color:var(--ink-soft);margin-top:2px;line-height:1.3}
+  .ticker-box{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px 14px}
+  .ticker-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12px}
+  .ticker-row:last-child{border-bottom:0}
+  .ticker-row .sym{font-weight:600}
+  .ticker-row .pr{font-family:"IBM Plex Mono",monospace;font-weight:500}
+  .badge-agent{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:10.5px;color:var(--ink-soft);background:var(--surface)}
+  .dot-pulse{width:6px;height:6px;border-radius:999px;background:var(--settled);display:inline-block;box-shadow:0 0 0 3px rgba(30,107,78,.15)}
+  .auth-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 0 10px}
+  .auth-hero .logo{font-family:"Instrument Serif",Georgia,serif;font-size:54px;line-height:1}
+  .auth-hero p{font-size:13px;color:var(--ink-soft);margin-top:8px;max-width:260px;line-height:1.4}
+  .auth-user-card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 0 rgba(21,20,15,.08)}
+  .radar-card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 0 rgba(21,20,15,.08)}
+  .radar-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600}
+  .prompt-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--ink);border-radius:4px;padding:10px 14px;box-shadow:0 2px 0 rgba(21,20,15,.14)}
+  .prompt-bar input{border:0;background:transparent;outline:none;font-family:"Sora",sans-serif;font-size:12.5px;color:var(--ink);width:100%}
+  .prompt-bar .send-btn{border:0;background:var(--stamp);color:var(--on-stamp);border-radius:2px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px}
+
+  /* NUEVOS ESTILOS PARA CASH-IN Y SALDO EN ESPERA T+0 */
+  .badge-yield{display:inline-flex;align-items:center;gap:6px;background:rgba(30,107,78,.08);border:1px solid var(--settled);border-radius:4px;padding:4px 8px;font-size:11px;color:var(--settled);font-weight:600;margin-top:6px}
+  .quick-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+  .quick-btn{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 4px;text-align:center;text-decoration:none;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 2px 0 rgba(21,20,15,.08)}
+  .quick-btn:hover{border-color:var(--ink)}
+  .quick-btn.primary{border-color:var(--stamp);background:var(--surface)}
+  .quick-btn .ico{font-size:16px;line-height:1}
+  .quick-btn .lbl{font-size:11px;font-weight:600}
+  .quick-btn .sub{font-size:9px;color:var(--ink-soft)}
+  .cashin-box{background:var(--surface);border:1px dashed var(--ink);border-radius:4px;padding:10px 12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+
+  /* VISTA PREMIUM DEL COMPROBANTE COMPARTIBLE */
+  .ticket{width:390px;height:844px;display:flex;flex-direction:column;background:var(--paper);border:1px solid #C9C0AF;border-radius:28px;overflow:hidden;position:relative;box-shadow:0 2px 0 rgba(21,20,15,.12)}
+  .ticket-status{height:44px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font:12px "IBM Plex Mono",monospace;position:relative;z-index:1}
+  .ticket-status .right{display:flex;align-items:center;gap:6px}
+  .ticket-content{flex:1;min-height:0;display:flex;flex-direction:column;padding:4px 18px 14px;gap:10px;position:relative;z-index:1}
+  .ticket-toolbar{display:flex;justify-content:space-between;align-items:center;min-height:34px}
+  .ticket-toolbar .title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+  .ticket-toolbar .close{font-size:20px;line-height:1;color:var(--ink-soft)}
+  .ticket-doc{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:0 3px 0 rgba(21,20,15,.07)}
+  .ticket-doc::before,.ticket-doc::after{content:"";display:block;height:8px;background:repeating-linear-gradient(90deg,var(--surface) 0,var(--surface) 7px,transparent 7px,transparent 13px)}
+  .ticket-doc::before{border-bottom:1px dashed var(--line)}
+  .ticket-doc::after{border-top:1px dashed var(--line)}
+  .ticket-inner{padding:13px 16px 12px}
+  .doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .doc-brand .doc-logo{font-family:"Instrument Serif",Georgia,serif;font-size:25px;letter-spacing:-.02em;line-height:1}
+  .doc-brand .doc-sub{font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-top:3px}
+  .doc-badge{font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:4px 7px;border-radius:999px;background:rgba(30,107,78,.08);color:var(--settled);border:1px solid rgba(30,107,78,.22)}
+  .doc-hero{text-align:center;padding:11px 0 12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .doc-hero .label{font-size:8px}
+  .doc-hero .doc-amount{font-family:"IBM Plex Mono",monospace;font-size:29px;font-weight:600;margin-top:4px;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+  .doc-hero .doc-amount small{font-size:15px;font-weight:400;color:var(--ink-soft)}
+  .doc-hero .doc-equiv{font-size:9px;color:var(--ink-soft);margin-top:3px}
+  .doc-hero .doc-equiv b{color:var(--ink);font-weight:600}
+  .doc-section{padding:9px 0;border-bottom:1px dashed var(--line)}
+  .doc-section:last-of-type{border-bottom:none;padding-bottom:0}
+  .doc-section-title{font-size:7.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-bottom:5px}
+  .doc-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:2px 0;font-size:10px}
+  .doc-row .k{color:var(--ink-soft)}
+  .doc-row .v{font-weight:600;text-align:right;max-width:62%}
+  .doc-row .v.mono{font-family:"IBM Plex Mono",monospace;font-size:9.5px}
+  .doc-row .v.green{color:var(--settled);font-weight:700}
+  .doc-row .v.bold{font-weight:700}
+  .doc-savings{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(30,107,78,.05);border:1px solid rgba(30,107,78,.17);border-radius:5px;padding:7px 9px;margin-top:9px}
+  .doc-savings .label{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--settled);font-weight:700}
+  .doc-savings .num{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--settled);font-weight:700;white-space:nowrap}
+  .doc-verification{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line)}
+  .doc-hash{min-width:0}
+  .doc-hash .title{font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+  .doc-hash .hash{font-family:"IBM Plex Mono",monospace;font-size:8px;color:var(--ink);word-break:break-all;margin-top:4px;line-height:1.45}
+  .doc-qr-box{width:47px;height:47px;border:1px solid var(--line);border-radius:3px;background-color:var(--surface);background-image:linear-gradient(90deg,var(--ink) 25%,transparent 25% 50%,var(--ink) 50% 75%,transparent 75%),linear-gradient(var(--ink) 25%,transparent 25% 50%,var(--ink) 50% 75%,transparent 75%);background-size:12px 12px;flex:none;position:relative}
+  .doc-qr-box::after{content:"";position:absolute;inset:4px;border:5px solid var(--surface);outline:2px solid var(--ink);outline-offset:-2px}
+  .doc-footer{margin-top:8px;text-align:center;font-size:7px;color:var(--ink-soft);line-height:1.4}
+  .ticket-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:auto;padding-top:2px}
+  .ticket-action{height:42px;display:flex;justify-content:center;align-items:center;border:1px solid var(--ink);border-radius:4px;color:var(--ink);font-size:11px;font-weight:600;text-decoration:none}
+  .ticket-action.primary{background:var(--stamp);border-color:var(--stamp);color:var(--on-stamp)}
+  .asset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .asset-option{display:flex;align-items:center;gap:9px;padding:10px 11px;background:var(--surface);border:1px solid var(--line);border-radius:4px}
+  .asset-option.selected{border:1.5px solid var(--ink);box-shadow:0 2px 0 rgba(21,20,15,.08)}
+  .asset-mark{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#e8e1d5;color:var(--ink);font:600 10px "IBM Plex Mono",monospace;flex:none}
+  .asset-option.stable .asset-mark{background:rgba(30,107,78,.1);color:var(--settled)}
+  .asset-name{font-size:11px;font-weight:700}
+  .asset-type{font-size:9px;color:var(--ink-soft);margin-top:2px}
+  .network-row{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;background:var(--surface);border:1px solid var(--line);border-radius:4px;font-size:11px}
+  .network-row .network{font-weight:700}
+  .network-row .detail{font-size:9px;color:var(--ink-soft);margin-top:3px}
+  .asset-summary{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 12px}
+  .asset-summary .row{padding:5px 0;font-size:11px}
+  .asset-summary .row .v{font-size:10px}
+  .risk-note{border-left:2px solid var(--pending);padding:7px 9px;background:rgba(168,113,16,.06);font-size:9px;line-height:1.4;color:var(--ink-soft)}
+  .custody-note{font-size:9px;line-height:1.4;color:var(--ink-soft);text-align:center;padding:0 4px}
+
+  /* DESTINO INTERNACIONAL Y "CÓMO LLEGA" */
+  .dest-row{display:flex;gap:5px;flex-wrap:wrap}
+  .dest{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 9px;font-size:10.5px;color:var(--ink-soft)}
+  .dest .cc{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:9.5px;letter-spacing:.04em}
+  .dest.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .arrival{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface);box-shadow:0 2px 0 rgba(21,20,15,.08)}
+  .arrival-opt{display:flex;align-items:center;gap:10px;padding:9px 11px;border-bottom:1px solid var(--line)}
+  .arrival-opt:last-child{border-bottom:0}
+  .arrival-opt.on{background:rgba(196,71,44,.05);box-shadow:inset 3px 0 0 var(--stamp)}
+  .arrival-ico{width:26px;height:26px;border-radius:50%;background:#e8e1d5;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;font:600 9px "IBM Plex Mono",monospace;flex:none}
+  .arrival-opt.on .arrival-ico{background:var(--stamp-soft);color:var(--stamp)}
+  .arrival-t{display:block;font-size:11.5px;font-weight:600;line-height:1.2}
+  .arrival-d{display:block;font-size:9.5px;color:var(--ink-soft);margin-top:1px;line-height:1.3}
+  .arrival-cost{margin-left:auto;font-size:10px;color:var(--ink-soft);text-align:right;flex:none}
+  .arrival-opt.on .arrival-cost{color:var(--stamp);font-weight:600}
+</style>
+</head>
+<body>
+<div class="board">
+
+  <header class="board-head">
+    <div>
+      <h1>Cauce · El ecosistema completo<br/>doce pantallas, dos intenciones, un solo motor</h1>
+      <p>Dirección visual: papel, sello y números tabulares. Sin look genérico de IA. Dos intenciones claras: <b>Transferir</b> (dinero fiat y activos digitales, con costo total transparente) y <b>Acumular / Fijar precio</b> (órdenes condicionales al valor que decidís pagar). <b>Cauce</b> · vos ponés el precio, nosotros lo esperamos.</p>
+    </div>
+    <div class="board-meta">
+      390 × 844 px cada pantalla<br/>
+      Sora · Instrument Serif · Plex Mono<br/>
+      Serial Prompters (Hackathon Fintech + AI)<br/>
+      <span style="display:inline-block;margin-top:6px;border:1px solid var(--line);border-radius:4px;padding:3px 8px;background:var(--surface);font-size:10px">Sandbox de demo · ticks sintéticos</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- 00 · ACCESO & PERFIL -->
+    <div class="screen">
+      <div class="screen-label"><b>00 · Acceso</b><span>onboarding sin fricción</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <div class="wordmark"><span class="w">Cauce</span><span class="t">por Serial Prompters</span></div>
+            <span class="pill"><span class="flag"></span> AR</span>
+          </div>
+
+          <div class="auth-hero">
+            <div class="logo">Cauce</div>
+            <p>El dinero corre por donde vos decidís. Al precio que vos fijás.</p>
+          </div>
+
+          <div class="auth-user-card">
+            <div class="avatar" style="font-size:13px">LR</div>
+            <div style="flex:1">
+              <div style="font-size:13.5px;font-weight:600">Lucas Rodríguez</div>
+              <div class="tiny mono" style="margin-top:2px">Dispositivo verificado · Alias / CBU listo</div>
+            </div>
+            <span class="stamp stamp--settled">activo</span>
+          </div>
+
+          <div class="receipt" style="padding:12px 14px">
+            <div class="row" style="padding:4px 0"><span class="k">Riel de liquidación</span><span class="v">MEP + Bitso (Crypto)</span></div>
+            <div class="row" style="padding:4px 0"><span class="k">Cuentas segregadas</span><span class="v">100% no-custodial</span></div>
+            <div class="row" style="padding:4px 0"><span class="k">Auditoría pública</span><span class="v">quote verificable</span></div>
+          </div>
+
+          <a class="btn" style="margin-top:auto" href="#">Entrar con magic link</a>
+          <div class="tiny" style="text-align:center;margin-top:8px">Link de un solo uso, vence en 10 min. Si no hay proveedor de mail, te lo mostramos acá <b>(sandbox)</b>.</div>
+          <div class="tiny" style="text-align:center;margin-bottom:18px">Face ID / huella como atajo (passkey), no como contraseña.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 01 · HOME (DASHBOARD) -->
+    <div class="screen">
+      <div class="screen-label"><b>01 · Home</b><span>dashboard y dos intenciones</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <div class="wordmark"><span class="w">Cauce</span><span class="t">Hola, Lucas</span></div>
+            <span class="badge-agent"><span class="dot-pulse"></span> Agente en guardia</span>
+          </div>
+
+          <div>
+            <div class="label">Tu saldo · demo, sin custodia</div>
+            <div class="amount" style="margin-top:6px">$ 1.420.500<small> ARS</small></div>
+            <div class="badge-yield"><span class="dot-pulse"></span> Saldo sintético · referencia FCI T+0 (dato histórico)</div>
+            <div class="tiny mono" style="color:var(--ink-soft);margin-top:6px">Referencia al 4/11/2026: TNA 19,59% vs. inflación 33,4% · no es retorno de tu saldo</div>
+            <div class="tiny mono" style="color:var(--ink-soft);margin-top:4px">≈ US$ 898,40 · <span style="color:var(--ink-soft);font-weight:600">ahorro ilustrativo, no realizado</span></div>
+          </div>
+
+          <!-- BOTONES DE ACCIÓN RÁPIDA (CASH-IN + TRANSFERENCIA + ACUMULACIÓN) -->
+          <div>
+            <div class="quick-row">
+              <a class="quick-btn" href="#">
+                <span class="ico">＋</span>
+                <span class="lbl">Ingresar demo</span>
+                <span class="sub">sin ingreso de fondos</span>
+              </a>
+              <a class="quick-btn" href="#">
+                <span class="ico">→</span>
+                <span class="lbl">Transferir</span>
+                <span class="sub">Nac. o exterior</span>
+              </a>
+              <a class="quick-btn" href="#">
+                <span class="ico">◎</span>
+                <span class="lbl">Fijar precio</span>
+                <span class="sub">Comprar a tu precio</span>
+              </a>
+            </div>
+
+            <!-- REFERENCIA DE ALIAS SINTÉTICO; NO RECIBE FONDOS -->
+            <div class="cashin-box">
+              <div>
+                <div class="label" style="font-size:9.5px">Alias ilustrativo · no recibe fondos</div>
+                <div class="mono" style="font-size:13px;font-weight:600;margin-top:2px">lucas.cauce</div>
+              </div>
+              <span class="stamp stamp--accent" style="cursor:pointer">Alias demo</span>
+            </div>
+          </div>
+
+          <!-- TICKER MERCADOS EN VIVO -->
+          <div class="ticker-box">
+            <div class="label" style="margin-bottom:6px">Mercado en vivo (Bitso & dolarapi)</div>
+            <div class="ticker-row">
+              <span class="sym">MEP (Bolsa)</span>
+              <span class="pr">$ 1.588,60</span>
+            </div>
+            <div class="ticker-row">
+              <span class="sym">USDT (Cripto)</span>
+              <span class="pr">$ 1.664,00 <span class="tiny mono" style="color:var(--stamp)">+4,7%</span></span>
+            </div>
+            <div class="ticker-row">
+              <span class="sym">Dólar Tarjeta</span>
+              <span class="pr" style="color:var(--ink-soft)">$ 2.041,00 <span class="tiny mono" style="color:var(--stamp)">+29,1%</span></span>
+            </div>
+            <div class="ticker-row">
+              <span class="sym">BTC / ARS</span>
+              <span class="pr" style="color:var(--settled)">$ 125.400.100</span>
+            </div>
+          </div>
+
+          <div class="savings" style="margin-top:auto;margin-bottom:12px">
+            <div>
+              <div class="label">Ahorro activo</div>
+              <div class="tiny">1 orden armada esperando</div>
+            </div>
+            <span class="stamp stamp--pending">US$ 200 @ 1.630</span>
+          </div>
+        </div>
+        <nav class="nav">
+          <a class="active" href="#">Home</a>
+          <a href="#">Transferir</a>
+          <a href="#">Órdenes</a>
+          <a href="#">Agente</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- 02 · TRANSFERIR (COTIZACIÓN) -->
+    <div class="screen">
+      <div class="screen-label"><b>02 · Transferir</b><span>monto, destino y forma de llegada</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <div class="wordmark"><span class="w">Cauce</span><span class="t">Transferencia</span></div>
+            <span class="pill"><span class="flag"></span> AR</span>
+          </div>
+
+          <!-- DESTINO INTERNACIONAL -->
+          <div>
+            <div class="label" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline">
+              <span>Envías a</span>
+              <span class="mono" style="font-size:9px;letter-spacing:.04em">Bre-B · COP</span>
+            </div>
+            <div class="dest-row">
+              <span class="dest"><span class="cc">AR</span> Argentina</span>
+              <span class="dest on"><span class="cc">CO</span> Colombia</span>
+              <span class="dest"><span class="cc">MX</span> México</span>
+              <span class="dest"><span class="cc">BR</span> Brasil</span>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="serif" style="font-size:26px">¿Cuánto mandás?</h2>
+          </div>
+
+          <div>
+            <div class="amount">US$ 200<small>,00</small></div>
+            <div class="tiny mono" style="color:var(--ink-soft);margin-top:4px">
+              Debitás de tus pesos: <b>$ 332.800 ARS</b> · 1 USDT = $ 1.664 (Bitso, 22:14)
+            </div>
+          </div>
+
+          <div class="who">
+            <div class="avatar">MC</div>
+            <div>
+              <div class="name">María Camila</div>
+              <div class="acct mono">Nequi · 300 123 4567</div>
+            </div>
+            <span class="link" style="margin-left:auto">Cambiar</span>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom:6px">¿Cómo querés que llegue?</div>
+            <div class="arrival">
+              <div class="arrival-opt on">
+                <span class="arrival-ico">$</span>
+                <span><span class="arrival-t">Pesos colombianos</span><span class="arrival-d">Bre-B / Nequi · en minutos</span></span>
+                <span class="arrival-cost mono">1,51%</span>
+              </div>
+              <div class="arrival-opt">
+                <span class="arrival-ico">US$</span>
+                <span><span class="arrival-t">Dólares en cuenta</span><span class="arrival-d">Banco · 1 a 3 días</span></span>
+                <span class="arrival-cost mono">13,5%</span>
+              </div>
+              <div class="arrival-opt">
+                <span class="arrival-ico">₮</span>
+                <span><span class="arrival-t">Dólar digital</span><span class="arrival-d">USDT a su wallet · segundos</span></span>
+                <span class="arrival-cost mono">1,01%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="receipt">
+            <div class="row" style="padding-top:0">
+              <span class="k">Camila recibe</span>
+              <span class="stamp stamp--accent">estimado</span>
+            </div>
+            <div class="row" style="padding-bottom:2px">
+              <span class="k mono" style="font-size:13px">@ 3.216</span>
+              <span class="v" style="font-size:24px">$ 633.520</span>
+            </div>
+            <hr class="divider" style="margin:8px 0 4px"/>
+            <div class="row" style="padding:2px 0 0">
+              <span class="k">Costo total</span>
+              <span class="v">1,51% · US$ 3,01</span>
+            </div>
+            <div class="tiny" style="margin-top:4px">COP · 1 USDT = 3.216 COP · Bitso · 22:14</div>
+          </div>
+
+          <a class="btn push" href="#">Continuar</a>
+        </div>
+        <nav class="nav">
+          <a href="#">Home</a>
+          <a class="active" href="#">Transferir</a>
+          <a href="#">Órdenes</a>
+          <a href="#">Agente</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- 02b · CÓMO LLEGA (DETALLE DEL CAMINO ELEGIDO) -->
+    <div class="screen">
+      <div class="screen-label"><b>02b · Cómo llega</b><span>pesos · Bre-B</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <span class="mono" style="font-size:16px">&larr;</span>
+            <span class="label">Pesos colombianos</span>
+            <span class="pill" style="padding:4px 8px;font-size:10px">AR → CO</span>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom:6px">Destino</div>
+            <div class="dest-row">
+              <span class="dest"><span class="cc">AR</span> CVU</span>
+              <span class="dest on"><span class="cc">CO</span> Bre-B</span>
+              <span class="dest"><span class="cc">MX</span> SPEI</span>
+              <span class="dest"><span class="cc">BR</span> Pix</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="amount" style="font-size:36px">$ 633.520<small>,00</small></div>
+            <div class="tiny mono" style="color:var(--ink-soft);margin-top:4px">COP · llega a Nequi en minutos · ella no hace nada</div>
+          </div>
+
+          <div class="who">
+            <div class="avatar">MC</div>
+            <div>
+              <div class="name">María Camila Gómez</div>
+              <div class="acct mono">Nequi · llave 300 123 4567 · C.C. verificada</div>
+            </div>
+            <span class="link" style="margin-left:auto">Cambiar</span>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom:4px">Cómo viaja tu plata</div>
+            <div class="track">
+              <div class="step done">
+                <span class="node"></span>
+                <div><div class="t">Debitás $ 332.800 ARS</div><div class="d">1 USDT = $ 1.664 · Bitso</div></div>
+              </div>
+              <div class="step done">
+                <span class="node"></span>
+                <div><div class="t">Convertís a USDT en Polygon</div><div class="d">0,01 USDT de red · segundos</div></div>
+              </div>
+              <div class="step now">
+                <span class="node"></span>
+                <div><div class="t">Bre-B acredita $ 633.520 COP</div><div class="d">1 USDT = 3.216 COP · en minutos</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="asset-summary">
+            <div class="row" style="padding-top:0"><span class="k">Camila recibe</span><span class="v" style="font-weight:700;font-size:12px">$ 633.520 COP</span></div>
+            <div class="row"><span class="k">Costo total</span><span class="v mono">US$ 3,01 · 1,51%</span></div>
+            <div class="row"><span class="k">Debita de tu cuenta</span><span class="v mono">$ 332.800 ARS</span></div>
+            <div class="tiny" style="margin-top:2px">Por debajo viaja USDT: se cambia a pesos antes de acreditar, así ella no toca ningún exchange.</div>
+          </div>
+
+            <div class="risk-note">Demo: la confirmación y los estados son simulados; no representan las condiciones de Bre-B ni mueven fondos.</div>
+          <div class="custody-note">Cauce no custodia activos. En esta demo el envío es simulado.</div>
+          <a class="btn push" href="#">Ver el costo detallado</a>
+        </div>
+        <nav class="nav">
+          <a href="#">Home</a>
+          <a class="active" href="#">Transferir</a>
+          <a href="#">Órdenes</a>
+          <a href="#">Agente</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- 03 · COSTO REAL (EL NÚMERO DEL PITCH) -->
+    <div class="screen">
+      <div class="screen-label"><b>03 · Costo real</b><span>la pantalla del pitch</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <span class="mono" style="font-size:16px">&larr;</span>
+            <span class="label">El costo real</span>
+            <span style="width:16px"></span>
+          </div>
+
+          <div class="receipt">
+            <div class="row" style="padding-top:0">
+              <span class="k">Enviás a Colombia</span><span class="v">US$ 200,00</span>
+            </div>
+            <div class="row">
+              <span class="k">Se debita de tu cuenta</span><span class="v" style="font-weight:600">$ 332.800 ARS</span>
+            </div>
+            <hr class="divider" style="margin:6px 0"/>
+            <div class="row"><span class="k">Comisión Cauce (1,0%)</span><span class="v">US$ 2,00</span></div>
+            <div class="row"><span class="k">Riel local Bre-B / Nequi</span><span class="v">US$ 1,00</span></div>
+            <div class="row"><span class="k">On-chain Polygon</span><span class="v">US$ 0,01</span></div>
+            <hr class="divider" style="margin:8px 0"/>
+            <div class="row total">
+              <span class="k">Camila recibe</span><span class="v" style="font-size:22px">$ 633.520</span>
+            </div>
+            <div class="tiny" style="margin-top:6px">COP · 1 USDT = 3.216 COP · Bitso · 22:14 · costo total US$ 3,01</div>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom:6px">De cada US$ 3,01 de costo</div>
+            <div class="costbar">
+              <i style="width:66.4%;background:var(--ink)"></i>
+              <i style="width:33.2%;background:var(--stamp)"></i>
+              <i style="width:0.4%;background:var(--settled)"></i>
+            </div>
+            <div class="legend">
+              <span><i class="dot" style="background:var(--ink)"></i> Comisión 66%</span>
+              <span><i class="dot" style="background:var(--stamp)"></i> Riel local 33%</span>
+              <span><i class="dot" style="background:var(--settled)"></i> On-chain &lt;1%</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="label" style="margin-bottom:2px">El mismo envío, otros caminos</div>
+            <div class="compare">
+              <div class="item">
+                <div class="who2"><span>Tu tarjeta del banco</span></div>
+                <div class="pct mono" style="color:var(--stamp)">+29,1%</div>
+              </div>
+              <div class="item">
+                <div class="who2"><span>Wire en dólares</span></div>
+                <div class="pct mono" style="color:var(--stamp)">13,5%</div>
+              </div>
+              <div class="item">
+                <div class="who2"><span>Promedio mundial</span></div>
+                <div class="pct mono" style="color:var(--ink-soft)">6,36%</div>
+              </div>
+              <div class="item best">
+                <div class="who2"><b>Cauce · pesos</b></div>
+                <div class="pct mono" style="color:var(--settled);font-weight:600">1,51%</div>
+              </div>
+            </div>
+          </div>
+
+          <a class="btn push" href="#">Revisar y confirmar</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 · VERIFICAR DESTINATARIO (REVIEW & CONFIRM) -->
+    <div class="screen">
+      <div class="screen-label"><b>04 · Verificar</b><span>datos del destinatario</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <span class="mono" style="font-size:16px">&larr;</span>
+            <span class="label">Revisar transferencia</span>
+            <span class="stamp stamp--settled">validado</span>
+          </div>
+
+          <div>
+            <div class="label">Destinatario demo · ruta Bre-B simulada</div>
+            <h2 class="serif" style="margin-top:6px;font-size:26px">Verificá los datos<br/>antes de transferir</h2>
+          </div>
+
+          <!-- FICHA VALIDADA DE DESTINATARIO -->
+          <div class="receipt" style="padding:14px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div class="avatar" style="width:40px;height:40px;font-size:14px">MC</div>
+              <div>
+                <div style="font-size:14px;font-weight:600">María Camila Gómez</div>
+                <div class="tiny mono" style="color:var(--settled);margin-top:2px">C.C. 1.032.456.789 · Verificado</div>
+              </div>
+            </div>
+            <hr class="divider" style="margin:8px 0"/>
+            <div class="row"><span class="k">Entidad destino</span><span class="v">Nequi (Bre-B)</span></div>
+            <div class="row"><span class="k">Llave</span><span class="v" style="font-weight:600">300 123 4567</span></div>
+            <div class="row"><span class="k">Riel de liquidación</span><span class="v">Bre-B · Banco de la República</span></div>
+          </div>
+
+          <!-- RESUMEN DE IMPORTES -->
+          <div class="receipt" style="padding:14px">
+            <div class="row" style="padding:2px 0"><span class="k">Monto que recibe</span><span class="v">$ 633.520 COP</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Se debita de tu cuenta</span><span class="v" style="font-weight:600">$ 332.800 ARS</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Cotización aplicada</span><span class="v mono">1 USDT = 3.216 COP</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Costo total (comisión + rieles)</span><span class="v mono">US$ 3,01</span></div>
+            <hr class="divider" style="margin:8px 0"/>
+            <div class="row total" style="padding:4px 0">
+              <span class="k">Camila recibe en su cuenta</span>
+              <span class="v" style="color:var(--settled);font-size:22px">$ 633.520</span>
+            </div>
+          </div>
+
+          <div class="tiny" style="color:var(--ink-soft);line-height:1.4">
+            Flujo de prueba: no hay acreditación real ni fondos transferidos.
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px" class="push">
+            <a class="btn" href="#">Simular envío · $ 332.800</a>
+            <a class="btn btn--ghost" style="height:38px;font-size:12px" href="#">Modificar datos</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 · COMPROBANTE (TRANSFERENCIA EXITOSA) -->
+    <div class="screen">
+      <div class="screen-label"><b>05 · Comprobante</b><span>transferencia simulada · sin payout</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <div class="wordmark"><span class="w">Cauce</span></div>
+            <span class="stamp stamp--pending">simulada</span>
+          </div>
+
+          <div style="text-align:center;padding:12px 0 6px">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:999px;background:rgba(30,107,78,.12);color:var(--settled);font-size:22px;margin-bottom:8px">✓</div>
+            <div class="label" style="color:var(--stamp)">Resultado de sandbox</div>
+            <h2 class="serif" style="font-size:28px;margin-top:4px">Transferencia simulada</h2>
+          </div>
+
+          <div class="receipt" style="padding:14px">
+            <div class="row" style="padding:2px 0"><span class="k">Destinatario de prueba</span><span class="v" style="font-weight:600">Persona demo</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Destino simulado</span><span class="v">Nequi · cuenta de prueba (CO)</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Débito simulado</span><span class="v mono">$ 332.800 ARS</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Recepción estimada</span><span class="v mono" style="font-size:16px;font-weight:600;color:var(--settled)">$ 633.520,00 COP</span></div>
+            <hr class="divider" style="margin:8px 0"/>
+            <div class="row" style="padding:2px 0"><span class="k">ID de demo</span><span class="v mono" style="font-size:11px">SIM-20261105-441902</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Fecha y hora</span><span class="v mono" style="font-size:11px">5 nov 2026 · 22:14 UTC-3</span></div>
+            <div class="row" style="padding:2px 0"><span class="k">Ahorro ilustrativo vs. wire</span><span class="v mono" style="color:var(--ink-soft);font-weight:600">US$ 23,99</span></div>
+          </div>
+
+          <div class="savings">
+            <div>
+            <div class="label">Hash ilustrativo · no verificable</div>
+              <div class="tiny mono">SHA-256: muestra de diseño</div>
+            </div>
+            <span class="stamp stamp--accent" style="cursor:pointer">Descargar</span>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px" class="push">
+            <a class="btn" href="#">Compartir comprobante</a>
+            <a class="btn btn--ghost" style="height:38px;font-size:12px" href="#">Volver a la Home</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05b · VISTA PREVIA DEL COMPROBANTE COMPARTIBLE -->
+    <div class="screen">
+      <div class="screen-label"><b>05b · Comprobante</b><span>vista previa para descargar o compartir</span></div>
+      <div class="ticket">
+        <div class="ticket-status">
+          <span>9:41</span>
+          <span class="right"><span>5G</span><span class="bar"></span></span>
+        </div>
+        <div class="ticket-content">
+          <div class="ticket-toolbar">
+            <span class="mono" style="font-size:17px">&larr;</span>
+            <span class="title">Comprobante</span>
+            <span class="close" aria-hidden="true">&middot;&middot;&middot;</span>
+          </div>
+
+          <div class="ticket-doc">
+            <div class="ticket-inner">
+              <div class="doc-header">
+                <div class="doc-brand">
+                  <div class="doc-logo">Cauce</div>
+                <div class="doc-sub">Muestra · transferencia simulada</div>
+                </div>
+                <div class="doc-badge">Sandbox</div>
+              </div>
+
+              <div class="doc-hero">
+                <div class="label">Recepción estimada · destinatario demo</div>
+                <div class="doc-amount">$ 633.520<small>,00</small></div>
+                <div class="doc-equiv">Pesos colombianos · <b>US$ 196,99</b> netos</div>
+              </div>
+
+              <div class="doc-section">
+                <div class="doc-section-title">Transferencia</div>
+                <div class="doc-row"><span class="k">Desde</span><span class="v">Sesión demo · <span class="mono">sin alias</span></span></div>
+                <div class="doc-row"><span class="k">Hacia</span><span class="v">Destinatario demo · <span class="mono">dato sintético</span></span></div>
+                <div class="doc-row"><span class="k">Débito simulado</span><span class="v mono bold">$ 332.800 ARS</span></div>
+                <div class="doc-row"><span class="k">Fecha</span><span class="v mono">5 nov 2026 · 22:14 UTC-3</span></div>
+              </div>
+
+              <div class="doc-section">
+                <div class="doc-section-title">Costo ilustrativo</div>
+                <div class="doc-row"><span class="k">Cotización</span><span class="v mono">1 USDT = 3.216 COP</span></div>
+                <div class="doc-row"><span class="k">Comisión + rieles</span><span class="v mono">US$ 3,01 · 1,51%</span></div>
+                <div class="doc-row"><span class="k">Riel</span><span class="v">USDT → Bre-B</span></div>
+                <div class="doc-row"><span class="k">ID de demo</span><span class="v mono">SIM-20261105-441902</span></div>
+              </div>
+
+              <div class="doc-savings">
+                <span class="label">Ahorro ilustrativo vs. wire</span>
+                <span class="num">US$ 23,99</span>
+              </div>
+
+              <div class="doc-verification">
+                <div class="doc-hash">
+                  <div class="title">Hash de muestra · SHA-256</div>
+                  <div class="hash">marcador de diseño<br/>no es un hash calculado</div>
+                </div>
+                <div class="doc-qr-box" aria-label="Código QR de muestra"></div>
+              </div>
+              <div class="doc-footer">Muestra de diseño · Datos simulados</div>
+            </div>
+          </div>
+
+          <div class="ticket-actions">
+            <a class="ticket-action primary" href="#">Descargar PDF</a>
+            <a class="ticket-action" href="#">Compartir</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06 · FIJAR PRECIO (ORDEN CONDICIONAL DE COMPRA) -->
+    <div class="screen">
+      <div class="screen-label"><b>06 · Fijar precio</b><span>desde Home o +Nueva orden</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <span class="mono" style="font-size:16px">&larr;</span>
+            <span class="label">Nueva orden</span>
+            <span class="pill" style="padding:4px 8px;font-size:11px">TTL 7d</span>
+          </div>
+
+          <div>
+            <div class="label">El mercado está en 1.664,00 · Orden condicional</div>
+            <h2 class="serif" style="margin-top:6px">¿A qué precio<br/>querés comprar?</h2>
+          </div>
+
+          <div class="field">
+            <div class="label">Tipo de cambio objetivo (ARS por USDT)</div>
+            <div class="val" style="font-size:24px;font-weight:600">1.630<span class="tiny mono" style="color:var(--settled);margin-left:8px">&minus;2,0%</span></div>
+          </div>
+
+          <div class="fields2">
+            <div class="field">
+              <div class="label">¿Cuánto querés comprar?</div>
+              <div class="val">US$ 200</div>
+            </div>
+            <div class="field">
+              <div class="label">Vencimiento</div>
+              <div class="val">7 días</div>
+            </div>
+          </div>
+
+          <div class="consent">
+            <div class="box on"></div>
+            <div class="tiny">Autorizo a Cauce a ejecutar automáticamente si la cotización toca 1.630 antes del 12 nov, 23:59. Slippage máximo permitido: 0,5%. Sin costo por cancelación.</div>
+          </div>
+
+          <div class="savings">
+            <div>
+              <div class="label">Ahorro si toca tu objetivo</div>
+              <div class="tiny">200 × $ 34 menos que hoy</div>
+            </div>
+            <div class="n">+ $ 6.800</div>
+          </div>
+
+          <a class="btn push" href="#">Armar orden</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07 · LA ORDEN (TRACKING) -->
+    <div class="screen">
+      <div class="screen-label"><b>07 · La orden</b><span>esperando el precio</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <span class="mono" style="font-size:16px">&larr;</span>
+            <div class="label">Orden #1042</div>
+            <span class="stamp stamp--pending">esperando</span>
+          </div>
+
+          <div>
+            <div class="label">Cotización actual USDT</div>
+            <div class="ticker" style="margin-top:4px">
+              <span class="num">1.641</span>
+              <span class="delta">&minus;1,4%</span>
+            </div>
+            <div class="progress"><i style="width:68%"></i></div>
+            <div class="tiny" style="margin-top:6px">Faltan 11 pesos para tu objetivo de 1.630</div>
+          </div>
+
+          <div class="track">
+            <div class="step done">
+              <span class="node"></span>
+              <div><div class="t">Orden armada</div><div class="d">22:14 · quote inicial 1.664,00</div></div>
+            </div>
+            <div class="step now">
+              <span class="node"></span>
+              <div><div class="t">Esperando el precio</div><div class="d">revisión cada 60 s vía Bitso</div></div>
+            </div>
+            <div class="step">
+              <span class="node"></span>
+              <div><div class="t">Resultado simulado</div><div class="d">200 USDT de ejemplo · sin compra ni acreditación</div></div>
+            </div>
+          </div>
+
+          <details class="audit">
+            <summary>Auditoría de muestra · hash no verificado</summary>
+            <div class="log">
+              <span style="color:var(--ink);font-weight:600">Hash: 7f8a9e1b27cd4829...3f12</span> [verificado]<br/>
+              Slippage límite: &plusmn;0,5% · Idempotency: UUID-v4<br/>
+              22:17 · quote 1.648 · TTL 30 s · viva<br/>
+              22:16 · quote 1.652 · TTL 30 s · vencida<br/>
+              22:14 · orden armada · consent. v1
+            </div>
+          </details>
+
+          <div style="display:flex;flex-direction:column;gap:8px" class="push">
+            <a class="btn btn--ghost" href="#">Pausar orden</a>
+            <a class="btn btn--ghost" style="height:38px;font-size:12.5px;border-color:var(--line);color:var(--stamp)" href="#">Cancelar orden</a>
+            <div class="tiny" style="text-align:center;color:var(--ink-soft)">Sin penalidad · Podés reanudar o liberar fondos cuando quieras</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <a href="#">Home</a>
+          <a href="#">Transferir</a>
+          <a class="active" href="#">Órdenes</a>
+          <a href="#">Agente</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- 08 · ÓRDENES (HISTORIAL) -->
+    <div class="screen">
+      <div class="screen-label"><b>08 · Órdenes</b><span>historial y comprobantes</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <div class="label">Órdenes</div>
+            <a href="#" class="stamp stamp--accent" style="text-decoration:none">+ Nueva orden</a>
+          </div>
+
+          <h2 class="serif" style="font-size:28px">Tus recibos</h2>
+
+          <div class="chips">
+            <span class="chip on">Todas</span>
+            <span class="chip">Armadas</span>
+            <span class="chip">Ejecutadas</span>
+          </div>
+
+          <div class="hist">
+            <div class="top">
+              <span class="rate">1.640</span>
+              <span class="stamp stamp--settled">ejecutada</span>
+            </div>
+            <div class="meta"><span>12 oct · US$ 200</span><span style="color:var(--settled);font-weight:600">+ $ 11.215</span></div>
+          </div>
+
+          <div class="hist">
+            <div class="top">
+              <span class="rate">1.598</span>
+              <span class="stamp stamp--cancel">cancelada</span>
+            </div>
+            <div class="meta"><span>8 oct · US$ 200</span><span>slippage &gt; 0,5%</span></div>
+          </div>
+
+          <div class="hist">
+            <div class="top">
+              <span class="rate">1.575</span>
+              <span class="stamp stamp--settled">ejecutada</span>
+            </div>
+            <div class="meta"><span>2 oct · US$ 150</span><span style="color:var(--settled);font-weight:600">+ $ 3.400</span></div>
+          </div>
+
+          <div class="tiny" style="margin-top:auto;padding-bottom:14px">Cada recibo es un comprobante inmutable firmado criptográficamente.</div>
+        </div>
+        <nav class="nav">
+          <a href="#">Home</a>
+          <a href="#">Transferir</a>
+          <a class="active" href="#">Órdenes</a>
+          <a href="#">Agente</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- 09 · AGENTE (CONSOLA COMPLETA) -->
+    <div class="screen">
+      <div class="screen-label"><b>09 · Agente</b><span>consola del copiloto IA</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="right"><span class="mono">5G</span><span class="bar"></span></span></div>
+        <div class="body">
+          <div class="topbar">
+            <div class="label">Copiloto Agéntico</div>
+            <span class="badge-agent"><span class="dot-pulse"></span> Solo lectura · sandbox</span>
+          </div>
+
+          <h2 class="serif" style="font-size:26px">¿Qué está mirando<br/>el agente ahora?</h2>
+
+          <div class="radar-card">
+            <div class="radar-head">
+              <span>Orden #1042 (USDT @ 1.630)</span>
+              <span class="stamp stamp--pending">esperando</span>
+            </div>
+            <div class="tiny mono">Cotización: 1.641 · objetivo: ≤ 1.630 · diferencia: $ 11 ARS. La condición todavía no se cumple.</div>
+          </div>
+
+          <div class="radar-card">
+            <div class="radar-head">
+              <span>Qué evalúa el motor</span>
+              <span class="stamp stamp--accent">2 ticks</span>
+            </div>
+            <div class="tiny">La orden necesita dos cotizaciones nuevas consecutivas en $ 1.630 o menos. Esta evaluación no contó como tick válido.</div>
+          </div>
+
+          <div class="radar-card">
+            <div class="radar-head">
+              <span>Próximo paso</span>
+              <span class="stamp stamp--pending">esperar</span>
+            </div>
+            <div class="tiny">El motor volverá a evaluar con una cotización nueva. Para cambiar, pausar o cancelar la orden, abrí Órdenes.</div>
+          </div>
+
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:12px">
+            <div class="prompt-bar">
+              <input type="text" value="¿Por qué sigue esperando?" readonly />
+              <button class="send-btn">&#8593;</button>
+            </div>
+            <div class="tiny" style="text-align:center">Consultas de solo lectura · no crea ni modifica órdenes</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <a href="#">Home</a>
+          <a href="#">Transferir</a>
+          <a href="#">Órdenes</a>
+          <a class="active" href="#">Agente</a>
+        </nav>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
