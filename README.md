@@ -1,15 +1,29 @@
 # Cauce — Frontend
 
-Aplicación full-stack mobile-first de Cauce: una interfaz para consultar costos, crear y seguir órdenes, y revisar comprobantes. La UI, la API (Route Handlers), el dominio y el acceso a Neon se despliegan juntos como una sola app de Next.js.
+Aplicación full-stack mobile-first para explorar Cauce en modo demo. Incluye acceso con email o passkey, cotizaciones de referencia, simulaciones de transferencias, órdenes de precio y un copiloto que interpreta reglas. La app no custodia fondos ni ejecuta transferencias reales.
+
+**Deploy:** [cauce-front-private.vercel.app](https://cauce-front-private.vercel.app/)
+
+## Funcionalidad actual
+
+- **Acceso y sesión:** se crea una sesión anónima al entrar. En `/acceso` se puede vincular un email mediante magic link y registrar una passkey; el magic link se muestra en pantalla en modo `sandbox`.
+- **Inicio (`/inicio`):** muestra el saldo demo persistido y las cotizaciones de referencia de mercado, con fuente, hora y estado del dato.
+- **Transferir (`/transferir`):** permite elegir un destino, obtener una vista previa del recorrido ARS → USDT → moneda local y simular el envío. La simulación valida y descuenta el saldo demo y queda en el historial; no mueve dinero. La disponibilidad de destinos depende de las fuentes de cotización configuradas en el código.
+- **Órdenes (`/nueva-orden`, `/ordenes`):** permite fijar un objetivo de precio para USDT con vencimiento de 1 hora, 24 horas, 7 días o hasta cancelar. Una orden puede quedar como alerta o autorizar una compra simulada automática. El monto se reserva en el saldo demo; el modo automático solo actúa con cotización en vivo y nunca compra activos reales. Las alertas se detectan mientras se consulta la pantalla de órdenes; el envío por email requiere una cuenta verificada y proveedor de correo configurado.
+- **Copiloto (`/agente`):** Gemini transforma una instrucción en una propuesta para revisar. No crea órdenes ni ejecuta acciones.
+- **Vistas ilustrativas:** `/como-llega`, `/costo`, `/verificar`, `/comprobante` y `/comprobante-vista` muestran el diseño previsto para una transferencia real, pero no tienen un flujo operativo ni generan comprobantes verificables.
+
+El saldo inicial es de prueba. Las simulaciones, sesiones, órdenes y datos asociados se guardan en Neon. Los proveedores de FX se consultan desde el servidor; si un dato está en caché o es antiguo, se marca en la interfaz. Las cotizaciones son de referencia y no constituyen una oferta.
 
 ## Stack
 
 - Next.js App Router, React y TypeScript estricto
-- Tailwind CSS 4 y componentes propios basados en shadcn/ui
-- TanStack Query para estado del servidor y polling
-- Lucide para iconos
-- PWA con manifest; el MVP no agrega service worker
-- Neon Postgres y Drizzle ORM para persistencia; lógica financiera y secretos solo en servidor
+- Tailwind CSS 4, componentes de interfaz propios y Lucide
+- TanStack Query para estado del servidor y actualización periódica
+- Neon Postgres y Drizzle ORM para persistencia
+- PWA mediante manifest; no incluye service worker
+
+La UI, los Route Handlers, el dominio y el acceso a datos forman una única aplicación Next.js, desplegada como un solo proyecto de Vercel.
 
 ## Requisitos
 
@@ -23,57 +37,41 @@ pnpm install
 pnpm dev
 ```
 
-Abrir [http://localhost:3000](http://localhost:3000). Comandos adicionales: `pnpm lint`, `pnpm build` y `pnpm start`.
+Abrir [http://localhost:3000](http://localhost:3000). Comandos disponibles:
+
+```bash
+pnpm lint
+pnpm build
+pnpm start
+pnpm run db:migrate
+```
+
+Para migrar la base de datos se necesitan `DATABASE_URL` y `DATABASE_URL_UNPOOLED`.
 
 ## Variables de entorno
 
-Configurar en `.env.local` para desarrollo y en Vercel para el deployment:
+Definir en `.env.local` para desarrollo y en la configuración del proyecto de Vercel para despliegue. Los secretos deben permanecer en el servidor y no llevar el prefijo `NEXT_PUBLIC_`.
 
 | Variable | Uso |
 |---|---|
-| `NEXT_PUBLIC_APP_URL` | URL HTTPS pública de la PWA. |
-| `DATABASE_URL` | Conexión Neon usada solo por código de servidor. Nunca debe llevar prefijo `NEXT_PUBLIC_`. |
-| `DATABASE_URL_UNPOOLED` | Conexión directa requerida para ejecutar migraciones Drizzle. |
-| `GEMINI_API_KEY` | Clave privada de Gemini, usada únicamente por el Route Handler del agente. |
+| `DATABASE_URL` | Conexión de la app con Neon. |
+| `DATABASE_URL_UNPOOLED` | Conexión directa usada por las migraciones Drizzle. |
+| `NEXT_PUBLIC_APP_URL` | URL pública HTTPS; requerida en producción para enlaces de acceso y passkeys. |
+| `AUTH_EMAIL_MODE` | Modo de envío: `sandbox` (por defecto), `gmail` o `resend`. `sandbox` no está permitido en producción. |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | Cuenta remitente y contraseña de aplicación cuando `AUTH_EMAIL_MODE=gmail`. |
+| `RESEND_API_KEY`, `AUTH_EMAIL_FROM` | API key y remitente verificado cuando `AUTH_EMAIL_MODE=resend`. |
+| `WEBAUTHN_RP_ID` | Dominio RP de passkeys; por defecto se deriva de `NEXT_PUBLIC_APP_URL`. |
+| `GEMINI_API_KEY` | Clave del copiloto; necesaria para interpretar reglas. |
 | `GEMINI_MODEL` | Modelo Gemini opcional; por defecto `gemini-3-flash-preview`. |
-| `DEMO_MODE`, `KILL_SWITCH` | Controles de demo leídos en servidor. |
-| `AUTH_EMAIL_MODE` | `sandbox` (por defecto), `gmail` o `resend`. |
-| `GMAIL_USER` | Gmail remitente, solo si `AUTH_EMAIL_MODE=gmail`. |
-| `GMAIL_APP_PASSWORD` | Contraseña de aplicación de Google, solo si `AUTH_EMAIL_MODE=gmail`. |
-| `RESEND_API_KEY` | Clave privada de Resend, solo si se usa `resend`. |
-| `AUTH_EMAIL_FROM` | Remitente verificado en Resend. |
-| `WEBAUTHN_RP_ID` | Dominio para passkeys; por defecto se deriva de `NEXT_PUBLIC_APP_URL`. |
+| `DEMO_MODE`, `KILL_SWITCH` | Controles de demo leídos en el servidor. |
+| `CRON_SECRET` | Secreto opcional para proteger el endpoint de cron de órdenes; configurar al habilitar el cron en Vercel. |
 
-Configurar las variables en `.env.local` para desarrollo y en el único proyecto de Vercel para el deployment. No agregar secretos al repositorio ni exponerlos con prefijo `NEXT_PUBLIC_`.
+## Persistencia y cron
 
-Para aplicar las migraciones existentes, configurar `DATABASE_URL` y `DATABASE_URL_UNPOOLED` en `.env.local` y ejecutar `pnpm run db:migrate`. La URL sin pooler se usa para la herramienta de migración; la app usa `DATABASE_URL`.
-
-## Demo y cotizaciones
-
-La aplicación presenta las doce vistas del mockup como una demo navegable. Inicio muestra un saldo de prueba de ARS 500.000, leído junto al historial desde `GET /api/demo/state` y asociado a una sesión anónima. En Transferir se puede simular un envío desde Argentina a destinos de Latinoamérica con monedas cotizadas por los proveedores disponibles, revisar una comisión de demo del 1% y seguir el recorrido ARS → USDT → moneda local. `POST /api/transfers/simulate` vuelve a validar el saldo en servidor, descuenta el monto y guarda el resultado como simulación demo en Neon dentro de una única sentencia atómica; no crea ni ejecuta una transferencia real. El saldo y las últimas simulaciones persisten al recargar. En Órdenes, `GET /api/orders` crea una sola vez dos muestras por sesión anónima y lista las órdenes guardadas; `POST /api/orders` valida la cotización, reserva el saldo demo e inserta la orden, y `DELETE /api/orders/:id` la elimina y devuelve el saldo reservado si corresponde. Estas órdenes son sandbox: no se ejecutan automáticamente ni envían fondos. El agente interpreta reglas mediante `POST /api/agent/rules/interpret` y devuelve una propuesta no ejecutable que requiere confirmación posterior; no crea órdenes ni persiste cambios. Su límite de consultas está en memoria por instancia y sirve para desarrollo/demo; el uso público requiere un limitador persistente compartido.
-
-El mercado consume Route Handlers del mismo origen. Las cotizaciones se consultan en el servidor a DolarAPI, Bitso y ExchangeRate API; las respuestas incluyen precio, fuente, hora y calidad. Los datos antiguos o en caché se identifican en la interfaz y no deben presentarse como vigentes.
-
-## Reglas de interfaz
-
-- Diseñar primero para móvil y revisar a 360 px de ancho.
-- Inputs de al menos 16 px, `inputmode="decimal"` para montos y áreas táctiles de 44 px.
-- No pedir permisos al entrar ni exigir instalación o login para abrir el flujo del QR.
-- Mostrar fuente y hora del precio y distinguir datos en caché de datos vigentes.
-- El backend es la autoridad para cálculos, FX, autenticación y estados de órdenes.
+Aplicar migraciones con `pnpm run db:migrate`. Vercel configura `/api/cron/orders` diariamente a las 03:00 UTC para procesar órdenes automáticas vencidas o elegibles. Las alertas de precio se revisan mientras la vista de órdenes está activa.
 
 ## Diseño y arquitectura
 
-El prototipo vigente de 12 pantallas está en `../cauce - docs/design/mockup-activos-digitales.html`. La especificación está en `../cauce - docs/docs/05-stack-y-mobile.md`; las instrucciones de trabajo, en [`AGENTS.md`](./AGENTS.md).
+El prototipo de referencia está en [`mockup-activos-digitales.html`](./mockup-activos-digitales.html). Las decisiones de stack y experiencia móvil están documentadas en [`../cauce - docs/docs/05-stack-y-mobile.md`](../cauce%20-%20docs/docs/05-stack-y-mobile.md). Las convenciones para contribuir están en [`AGENTS.md`](./AGENTS.md).
 
-Este proyecto es la app activa y única de Cauce. El repositorio `cauce - backend` se conserva como archivo histórico, pero no forma parte del deploy activo. No se necesita URL de API externa ni CORS entre frontend y backend.
-
-## Diseño y arquitectura
-
-El prototipo vigente de 12 pantallas está en `../cauce - docs/design/mockup-activos-digitales.html`. La especificación está en `../cauce - docs/docs/05-stack-y-mobile.md`; las instrucciones de trabajo, en [`AGENTS.md`](./AGENTS.md).
-
-Este proyecto es la app activa y única de Cauce. El repositorio `cauce - backend` se conserva como archivo histórico, pero no forma parte del deploy activo. No se necesita URL de API externa ni CORS entre frontend y backend.
-
-### Usuarios y acceso
-
-La demo crea una sesión anónima automáticamente. En `/acceso` se puede vincular un email con magic link (10 minutos, de un solo uso) y registrar una passkey para volver a entrar. Con `AUTH_EMAIL_MODE=sandbox` el enlace se muestra en pantalla para desarrollo. Para enviar desde un Gmail dedicado, configurar `AUTH_EMAIL_MODE=gmail`, `GMAIL_USER` y `GMAIL_APP_PASSWORD` (contraseña de aplicación de Google; requiere verificación en dos pasos). También está disponible Resend con `AUTH_EMAIL_MODE=resend`, `RESEND_API_KEY` y `AUTH_EMAIL_FROM`. `NEXT_PUBLIC_APP_URL` debe coincidir con el origen HTTPS público; es obligatorio en producción. `WEBAUTHN_RP_ID` es opcional y por defecto usa el hostname de esa URL. Aplicar las migraciones con `pnpm run db:migrate`.
+Este frontend es la aplicación activa y el único deployment de Cauce. El repositorio histórico `cauce - backend` no forma parte del despliegue actual; no se necesita una URL de API externa ni CORS entre capas.
